@@ -64,6 +64,10 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
 
     const isRoomAdmin = () => account.toLowerCase() === roomInfo?.roomAdmin;
     const isSuperAdmin = () => account.toLowerCase() === roomInfo?.superAdmin;
+    const isVoter = () => {
+        return roomInfo?.voters?.includes(account.toLowerCase());
+    };
+
 
     const handleTx = async (method, ...args) => {
         try {
@@ -177,7 +181,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 {roomInfo.candidates.map((candidate, idx) => (
                     <li key={idx} style={{ marginBottom: '1rem' }}>
                         <div><strong>{candidate.name}</strong> (Votes: {candidate.voteCount.toString()})</div>
-                        {roomInfo.votingStarted && !roomInfo.votingEnded && (
+                        {roomInfo.votingStarted && !roomInfo.votingEnded && isVoter() && (
                             <button onClick={() => handleTx("vote", candidate.id)} disabled={actionLoading}>Vote</button>
                         )}
                     </li>
