@@ -9,6 +9,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const [loading, setLoading] = useState(true);
     const [candidateName, setCandidateName] = useState('');
     const [newVoterAddress, setNewVoterAddress] = useState('');
+    const [newAdminAddress, setNewAdminAddress] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
@@ -134,7 +135,25 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                     </div>
 
                     <div style={{ marginTop: '1rem' }}>
-                        <button onClick={() => handleTx("resetRoom")} disabled={actionLoading}>Reset Room</button>
+                        <button onClick={() => handleTx("clearVotes")} disabled={actionLoading}>Clear Votes</button>
+                        <button onClick={() => handleTx("clearCandidates")} disabled={actionLoading} style={{ marginLeft: '1rem' }}>
+                            Clear Candidates
+                        </button>
+                        <button onClick={() => handleTx("resetRoom")} disabled={actionLoading} style={{ marginLeft: '1rem' }}>
+                            Reset Room
+                        </button>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                        <input
+                            type="text"
+                            placeholder="New Admin Address"
+                            value={newAdminAddress}
+                            onChange={(e) => setNewAdminAddress(e.target.value)}
+                        />
+                        <button onClick={() => handleTx("transferRoomAdmin", newAdminAddress)} disabled={actionLoading}>
+                            Transfer Admin
+                        </button>
                     </div>
                 </>
             )}

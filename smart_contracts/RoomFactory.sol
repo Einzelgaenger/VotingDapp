@@ -15,10 +15,12 @@ contract RoomFactory {
     struct RoomInfo {
         address roomAddress;
         string roomName;
+        string description;
         address createdBy;
     }
 
     RoomInfo[] public rooms;
+    mapping(address => address[]) public roomsByUser; // ✅ NEW
 
     event CreatorTransferred(address indexed oldOwner, address indexed newOwner);
     event SuperAdminAdded(address indexed newAdmin);
@@ -29,22 +31,16 @@ contract RoomFactory {
         superAdmins.push(creator);
     }
 
-    // 🔒 Hanya Creator
     modifier onlyCreator() {
         require(msg.sender == creator, "Not creator");
         _;
     }
 
-    // 🔒 Hanya Creator atau SuperAdmin
     modifier onlyCreatorOrSuperAdmin() {
-        require(
-            msg.sender == creator || isSuperAdmin(msg.sender),
-            "Not authorized"
-        );
+        require(msg.sender == creator || isSuperAdmin(msg.sender), "Not authorized");
         _;
     }
 
-    // 🔎 Cek apakah address adalah superadmin
     function isSuperAdmin(address addr) public view returns (bool) {
         for (uint i = 0; i < superAdmins.length; i++) {
             if (superAdmins[i] == addr) {
@@ -54,14 +50,12 @@ contract RoomFactory {
         return false;
     }
 
-    // ➕ Tambah SuperAdmin (hanya Creator)
     function addSuperAdmin(address newAdmin) public onlyCreator {
         require(newAdmin != address(0), "Invalid address");
         superAdmins.push(newAdmin);
         emit SuperAdminAdded(newAdmin);
     }
 
-    // ➖ Hapus SuperAdmin (hanya Creator)
     function removeSuperAdmin(address adminToRemove) public onlyCreator {
         require(adminToRemove != address(0), "Invalid address");
         require(adminToRemove != creator, "Cannot remove creator");
@@ -82,21 +76,20 @@ contract RoomFactory {
         emit SuperAdminRemoved(adminToRemove);
     }
 
-    // 🔄 Transfer Creator ke address baru
     function transferCreator(address newCreator) public onlyCreator {
         require(newCreator != address(0), "Invalid address");
         emit CreatorTransferred(creator, newCreator);
         creator = newCreator;
     }
 
-    // 🏗️ Create Voting Room
-    function createRoom(string memory name, uint256 maxVoters) public returns (address) {
-        VotingRoom newRoom = new VotingRoom(creator, msg.sender, name, maxVoters);
-        rooms.push(RoomInfo(address(newRoom), name, msg.sender));
+    function createRoom(string memory name, string memory description, uint256 maxVoters) public returns (address) {
+        VotingRoom newRoom = new VotingRoom(creator, msg.sender, name, description, maxVoters);
+        rooms.push(RoomInfo(address(newRoom), name, description, msg.sender));
+        roomsByUser[msg.sender].push(address(newRoom));
         return address(newRoom);
     }
 
-    // 🛑 Deactivate & Delete Room
+
     function deactivateAndDeleteRoom(uint index) public onlyCreatorOrSuperAdmin {
         require(index < rooms.length, "Invalid room index");
 
@@ -109,7 +102,6 @@ contract RoomFactory {
         rooms.pop();
     }
 
-    // 🧹 Factory Reset (Creator Only)
     function factoryReset() public onlyCreator {
         for (uint i = 0; i < rooms.length; i++) {
             IVotingRoom votingRoom = IVotingRoom(rooms[i].roomAddress);
@@ -120,19 +112,24 @@ contract RoomFactory {
         superAdmins.push(creator);
     }
 
-    // 🧐 Get Status Room Active
     function getRoomStatus(uint index) public view returns (bool) {
         require(index < rooms.length, "Invalid index");
         IVotingRoom votingRoom = IVotingRoom(rooms[index].roomAddress);
         return votingRoom.isActive();
     }
 
-    // 📋 Get All Rooms
     function getRooms() public view returns (RoomInfo[] memory) {
         return rooms;
     }
 
-    // 📋 Get SuperAdmins (PUBLIC NOW 🔥)
+    function getRoomsByAddress(address user) public view returns (address[] memory) {
+        return roomsByUser[user]; // ✅ NEW & lebih efisien
+    }
+
+    function getRoomCountByUser(address user) public view returns (uint256) {
+        return roomsByUser[user].length; // ✅ NEW
+    }
+
     function getSuperAdmins() public view returns (address[] memory) {
         return superAdmins;
     }
