@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
-export default function RoomDetail({ activeRoomAddress, setPage }) {
+export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }) {
     const { account } = useWallet();
     const [roomInfo, setRoomInfo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -90,7 +90,10 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
 
             <div style={{ display: 'flex', gap: '1rem' }}>
                 <button onClick={() => setPage('myrooms')}>Back to My Rooms</button>
-                <button onClick={() => setPage('roommembers')}>View Members</button>
+                <button onClick={() => {
+                    setReturnPage('roomdetail');
+                    setPage('roommembers');
+                }}>View Members</button>
             </div>
         </div>
     );

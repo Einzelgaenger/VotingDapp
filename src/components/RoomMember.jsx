@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
-export default function RoomMember({ activeRoomAddress, setPage }) {
+export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'roomdetail' }) {
     const [candidates, setCandidates] = useState([]);
     const [voters, setVoters] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ export default function RoomMember({ activeRoomAddress, setPage }) {
             )}
 
             <div style={{ marginTop: '2rem' }}>
-                <button onClick={() => setPage('roomdetail')}>Back to Room Detail</button>
+                <button onClick={() => setPage(returnPage)}>Back</button>
             </div>
         </div>
     );
