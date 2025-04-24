@@ -2,105 +2,130 @@ import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
+import VotingRoomAbi from '../abis/VotingRoom.json';
 
-// Minimal ABI VotingRoom untuk get info voters/candidates
-const VotingRoomAbi = [
-    {
-        "inputs": [],
-        "name": "getVoters",
-        "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getCandidates",
-        "outputs": [
-            {
-                "components": [
-                    { "internalType": "uint256", "name": "id", "type": "uint256" },
-                    { "internalType": "string", "name": "name", "type": "string" },
-                    { "internalType": "uint256", "name": "voteCount", "type": "uint256" }
-                ],
-                "internalType": "struct VotingRoom.Candidate[]",
-                "name": "",
-                "type": "tuple[]"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    }
-];
-
-const ROOM_FACTORY_ADDRESS = "0x953dEb668181ab8a619611CB6401E022CeC4659f";
+const ROOM_FACTORY_ADDRESS = "0xD4a27A0f15af108B164824B8Ff0EA53eE362959a";
 
 export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const { account } = useWallet();
-    const [myRooms, setMyRooms] = useState([]);
+    const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (account) {
-            fetchMyRooms();
-        }
+        if (account) fetchRoomsFast();
     }, [account]);
 
-    const fetchMyRooms = async () => {
+    const fetchRoomsFast = async () => {
         try {
             setLoading(true);
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const factoryContract = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
+            const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
 
-            const rooms = await factoryContract.getRooms();
-            const myCreatedRooms = rooms.filter(room => room.createdBy.toLowerCase() === account.toLowerCase());
+            const allRooms = await factory.getRooms();
 
-            const detailedRooms = await Promise.all(myCreatedRooms.map(async (room) => {
-                const votingRoom = new ethers.Contract(room.roomAddress, VotingRoomAbi, provider);
-                const voters = await votingRoom.getVoters();
-                const candidates = await votingRoom.getCandidates();
-                return {
-                    ...room,
-                    votersCount: voters.length,
-                    candidatesCount: candidates.length
-                };
+            const myRooms = allRooms.filter(r => r.createdBy.toLowerCase() === account.toLowerCase());
+
+            const formatted = myRooms.map((room, index) => ({
+                index,
+                address: room.roomAddress,
+                roomName: room.roomName,
+                description: '',         // Will be fetched
+                votersCount: null,       // Will be fetched
+                candidatesCount: null    // Will be fetched
             }));
 
-            setMyRooms(detailedRooms.reverse()); // 🔥 Reverse di sini! Newest first!
-        } catch (error) {
-            console.error("Error fetching my rooms:", error);
+            setRooms(formatted);
+
+            // Fetch room details lazily per room
+            formatted.forEach((room, i) => fetchRoomDetail(room.address, i));
+        } catch (err) {
+            console.error('Error fetching my rooms:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleOpenRoom = (address) => {
-        setActiveRoomAddress(address);
+    const fetchRoomDetail = async (roomAddress, index) => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
+
+            const [description, voters, candidates] = await Promise.all([
+                roomContract.description(),
+                roomContract.getVoters(),
+                roomContract.getCandidates(),
+            ]);
+
+            setRooms(prev => {
+                const updated = [...prev];
+                updated[index] = {
+                    ...updated[index],
+                    description,
+                    votersCount: voters.length,
+                    candidatesCount: candidates.length
+                };
+                return updated;
+            });
+        } catch (error) {
+            console.error(`Failed to fetch detail for ${roomAddress}:`, error);
+        }
+    };
+
+    const handleSeeDetails = (addr) => {
+        setActiveRoomAddress(addr);
         setPage('roomdetail');
     };
+
+    const handleJoinRoom = async (roomAddress) => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const contract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
+
+            const [roomAdmin, superAdmin, voters] = await Promise.all([
+                contract.roomAdmin(),
+                contract.superAdmin(),
+                contract.getVoters()
+            ]);
+
+            const user = account.toLowerCase();
+            const isAdmin = user === roomAdmin.toLowerCase() || user === superAdmin.toLowerCase();
+            const isVoter = voters.map(v => v.toLowerCase()).includes(user);
+
+            if (isAdmin || isVoter) {
+                setActiveRoomAddress(roomAddress);
+                setPage('roominteract');
+            } else {
+                alert("You're not authorized to join this room.");
+            }
+        } catch (err) {
+            console.error('Join room failed:', err);
+            alert('Failed to join room');
+        }
+    };
+
+    if (loading) return <div style={{ padding: '2rem' }}>Loading your rooms...</div>;
 
     return (
         <div style={{ padding: '2rem' }}>
             <h2>My Voting Rooms</h2>
 
-            {loading ? (
-                <p>Loading your rooms...</p>
-            ) : myRooms.length === 0 ? (
+            {rooms.length === 0 ? (
                 <p>No rooms created yet.</p>
             ) : (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {myRooms.map((room, index) => (
-                        <li key={index} style={{ border: '1px solid gray', padding: '1rem', marginBottom: '1rem', borderRadius: '8px' }}>
-                            <div><strong>Room Name:</strong> {room.roomName}</div>
-                            <div><strong>Room Address:</strong> {room.roomAddress}</div>
-                            <div><strong>Voters:</strong> {room.votersCount}</div>
-                            <div><strong>Candidates:</strong> {room.candidatesCount}</div>
+                rooms.map((room, index) => (
+                    <div key={index} style={{ border: '1px solid #aaa', padding: '1rem', marginBottom: '1rem' }}>
+                        <strong>Room Name:</strong> {room.roomName} <br />
+                        <strong>Room Address:</strong> {room.address} <br />
+                        <strong>Description:</strong> {room.description || 'Loading...'} <br />
+                        <strong>Voters:</strong> {room.votersCount !== null ? room.votersCount : '...'} <br />
+                        <strong>Candidates:</strong> {room.candidatesCount !== null ? room.candidatesCount : '...'} <br />
 
-                            <div style={{ marginTop: '1rem' }}>
-                                <button onClick={() => handleOpenRoom(room.roomAddress)}>Open Room</button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                        <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                            <button onClick={() => handleSeeDetails(room.address)}>See Details</button>
+                            <button onClick={() => handleJoinRoom(room.address)}>Join Room</button>
+                        </div>
+                    </div>
+                ))
             )}
         </div>
     );

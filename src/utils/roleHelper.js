@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
 import RoomFactoryAbi from "../abis/RoomFactory.json";
 
-const ROOM_FACTORY_ADDRESS = "0x953dEb668181ab8a619611CB6401E022CeC4659f";
+const ROOM_FACTORY_ADDRESS = "0xD4a27A0f15af108B164824B8Ff0EA53eE362959a";
 
 export async function getUserRole(account, provider) {
-    if (!account || !provider) return "guest";
+    if (!account || !provider) return "user";
 
     try {
         const roomFactory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
@@ -21,9 +21,9 @@ export async function getUserRole(account, provider) {
             return "superadmin";
         }
 
-        return "guest";
+        return "user";
     } catch (error) {
         console.error("Error detecting role:", error);
-        return "guest";
+        return "user";
     }
 }

@@ -19,9 +19,20 @@ export function WalletProvider({ children }) {
             setProvider(ethProvider);
 
             window.ethereum.on('accountsChanged', async ([newAccount]) => {
-                setAccount(newAccount);
-                const userRole = await getUserRole(newAccount, ethProvider);
-                setRole(userRole);
+                if (newAccount) {
+                    setAccount(newAccount);
+                    const userRole = await getUserRole(newAccount, ethProvider);
+                    setRole(userRole);
+                } else {
+                    // Wallet disconnected (e.g., via MetaMask)
+                    setAccount(null);
+                    setRole("guest");
+                }
+            });
+
+            window.ethereum.on('disconnect', () => {
+                setAccount(null);
+                setRole("guest");
             });
         }
     }, []);

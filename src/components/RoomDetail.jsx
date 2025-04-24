@@ -22,6 +22,7 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
 
             const [
                 roomName,
+                description,
                 roomAdmin,
                 superAdmin,
                 voters,
@@ -29,9 +30,11 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
                 isActive,
                 votingStarted,
                 votingEnded,
-                maxVoters
+                maxVoters,
+                factory
             ] = await Promise.all([
                 contract.roomName(),
+                contract.description(),
                 contract.roomAdmin(),
                 contract.superAdmin(),
                 contract.getVoters(),
@@ -39,11 +42,13 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
                 contract.isActive(),
                 contract.votingStarted(),
                 contract.votingEnded(),
-                contract.maxVoters()
+                contract.maxVoters(),
+                contract.factory()
             ]);
 
             setRoomInfo({
                 roomName,
+                description,
                 roomAdmin: roomAdmin.toLowerCase(),
                 superAdmin: superAdmin.toLowerCase(),
                 votersCount: voters.length,
@@ -51,7 +56,8 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
                 isActive,
                 votingStarted,
                 votingEnded,
-                maxVoters: maxVoters.toString()
+                maxVoters: maxVoters.toString(),
+                factory
             });
         } catch (error) {
             console.error('Error fetching room detail:', error);
@@ -70,9 +76,11 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
 
             <div style={{ marginBottom: '1rem' }}>
                 <strong>Room Name:</strong> {roomInfo.roomName} <br />
+                <strong>Description:</strong> {roomInfo.description} <br />
                 <strong>Room Address:</strong> {activeRoomAddress} <br />
                 <strong>Room Admin:</strong> {roomInfo.roomAdmin} <br />
                 <strong>Super Admin:</strong> {roomInfo.superAdmin} <br />
+                <strong>Factory:</strong> {roomInfo.factory} <br />
                 <strong>Status Room:</strong> {roomInfo.isActive ? 'Active' : 'Inactive'} <br />
                 <strong>Voting Status:</strong> {roomInfo.votingStarted ? (roomInfo.votingEnded ? 'Ended' : 'In Progress') : 'Not Started'} <br />
                 <strong>Max Voters:</strong> {roomInfo.maxVoters} <br />
@@ -80,8 +88,9 @@ export default function RoomDetail({ activeRoomAddress, setPage }) {
                 <strong>Number of Candidates:</strong> {roomInfo.candidatesCount} <br />
             </div>
 
-            <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', gap: '1rem' }}>
                 <button onClick={() => setPage('myrooms')}>Back to My Rooms</button>
+                <button onClick={() => setPage('roommembers')}>View Members</button>
             </div>
         </div>
     );

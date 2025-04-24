@@ -3,18 +3,18 @@ import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 
-// Ganti ini ke address RoomFactory kamu
-const ROOM_FACTORY_ADDRESS = "0x953dEb668181ab8a619611CB6401E022CeC4659f";
+const ROOM_FACTORY_ADDRESS = "0xD4a27A0f15af108B164824B8Ff0EA53eE362959a";
 
 export default function CreateRoom() {
     const { account } = useWallet();
     const [roomName, setRoomName] = useState('');
+    const [description, setDescription] = useState('');
     const [maxVoters, setMaxVoters] = useState('');
     const [loading, setLoading] = useState(false);
     const [txHash, setTxHash] = useState(null);
 
     const handleCreateRoom = async () => {
-        if (!roomName || !maxVoters) {
+        if (!roomName || !description || !maxVoters) {
             alert('Please fill all fields');
             return;
         }
@@ -28,7 +28,7 @@ export default function CreateRoom() {
 
             const roomFactory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
 
-            const tx = await roomFactory.createRoom(roomName, maxVoters);
+            const tx = await roomFactory.createRoom(roomName, description, maxVoters);
             await tx.wait();
 
             setTxHash(tx.hash);
@@ -51,6 +51,12 @@ export default function CreateRoom() {
                     placeholder="Room Name"
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
+                />
+                <textarea
+                    placeholder="Room Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
                 />
                 <input
                     type="number"

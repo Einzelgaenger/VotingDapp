@@ -12,9 +12,7 @@ export default function RoomInteract({ activeRoomAddress, setPage }) {
     const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
-        if (activeRoomAddress) {
-            fetchRoomDetail();
-        }
+        if (activeRoomAddress) fetchRoomDetail();
     }, [activeRoomAddress]);
 
     const fetchRoomDetail = async () => {
@@ -56,198 +54,59 @@ export default function RoomInteract({ activeRoomAddress, setPage }) {
                 votingEnded,
                 maxVoters: maxVoters.toString()
             });
-        } catch (error) {
-            console.error('Error fetching room detail:', error);
+        } catch (err) {
+            console.error('Error fetching room detail:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    const isAdmin = () => {
-        if (!roomInfo) return false;
-        return (
-            account.toLowerCase() === roomInfo.roomAdmin ||
-            account.toLowerCase() === roomInfo.superAdmin
-        );
-    };
+    const isRoomAdmin = () => account.toLowerCase() === roomInfo?.roomAdmin;
+    const isSuperAdmin = () => account.toLowerCase() === roomInfo?.superAdmin;
 
-    const isSuperAdmin = () => {
-        if (!roomInfo) return false;
-        return account.toLowerCase() === roomInfo.superAdmin;
-    };
-
-    const handleStartVote = async () => {
+    const handleTx = async (method, ...args) => {
         try {
             setActionLoading(true);
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
             const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
 
-            const tx = await contract.startVote();
+            const tx = await contract[method](...args);
             await tx.wait();
-
-            alert('Voting started!');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error starting vote:', error);
-            alert('Failed to start voting.');
+            await fetchRoomDetail();
+            alert(`${method} success!`);
+        } catch (err) {
+            console.error(`Error during ${method}:`, err);
+            alert(`Failed to ${method}`);
         } finally {
             setActionLoading(false);
         }
     };
 
-    const handleEndVote = async () => {
-        try {
-            setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
-
-            const tx = await contract.endVote();
-            await tx.wait();
-
-            alert('Voting ended!');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error ending vote:', error);
-            alert('Failed to end voting.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleVote = async (candidateId) => {
-        try {
-            setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
-
-            const tx = await contract.vote(candidateId);
-            await tx.wait();
-
-            alert('Voted successfully!');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error voting:', error);
-            alert('Failed to vote.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleAddCandidate = async () => {
-        try {
-            if (!candidateName) return alert('Candidate name is required.');
-            setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
-
-            const tx = await contract.addCandidate(candidateName);
-            await tx.wait();
-
-            alert('Candidate added!');
-            setCandidateName('');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error adding candidate:', error);
-            alert('Failed to add candidate.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleAddVoter = async () => {
-        try {
-            if (!ethers.utils.isAddress(newVoterAddress)) return alert('Invalid address.');
-            setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
-
-            const tx = await contract.addVoter(newVoterAddress);
-            await tx.wait();
-
-            alert('Voter added!');
-            setNewVoterAddress('');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error adding voter:', error);
-            alert('Failed to add voter.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleResetRoom = async () => {
-        if (!window.confirm('Are you sure you want to reset this room?')) return;
-        try {
-            setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
-
-            const tx = await contract.resetRoom();
-            await tx.wait();
-
-            alert('Room reset successfully!');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error resetting room:', error);
-            alert('Failed to reset room.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleDeactivateRoom = async () => {
-        if (!window.confirm('Are you sure you want to deactivate this room?')) return;
-        try {
-            setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
-
-            const tx = await contract.deactivateRoom();
-            await tx.wait();
-
-            alert('Room deactivated successfully!');
-            fetchRoomDetail();
-        } catch (error) {
-            console.error('Error deactivating room:', error);
-            alert('Failed to deactivate room.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    if (loading || !roomInfo) {
-        return <div style={{ padding: '2rem' }}>Loading Room Interaction...</div>;
-    }
+    if (loading || !roomInfo) return <div style={{ padding: '2rem' }}>Loading Room Interaction...</div>;
 
     return (
         <div style={{ padding: '2rem' }}>
             <h2>Interact with Voting Room</h2>
 
-            <div style={{ marginBottom: '1rem' }}>
-                <strong>Room Name:</strong> {roomInfo.roomName} <br />
-                <strong>Room Address:</strong> {activeRoomAddress} <br />
-                <strong>Room Admin:</strong> {roomInfo.roomAdmin} <br />
-                <strong>Super Admin:</strong> {roomInfo.superAdmin} <br />
-                <strong>Status:</strong> {roomInfo.isActive ? 'Active' : 'Inactive'} <br />
-                <strong>Voting:</strong> {roomInfo.votingStarted ? (roomInfo.votingEnded ? 'Ended' : 'In Progress') : 'Not Started'} <br />
-                <strong>Max Voters:</strong> {roomInfo.maxVoters} <br />
-                <strong>Total Candidates:</strong> {roomInfo.candidates.length} <br />
+            <div>
+                <strong>Room Name:</strong> {roomInfo.roomName}<br />
+                <strong>Room Address:</strong> {activeRoomAddress}<br />
+                <strong>Room Admin:</strong> {roomInfo.roomAdmin}<br />
+                <strong>Super Admin:</strong> {roomInfo.superAdmin}<br />
+                <strong>Status:</strong> {roomInfo.isActive ? 'Active' : 'Inactive'}<br />
+                <strong>Voting:</strong> {roomInfo.votingStarted ? (roomInfo.votingEnded ? 'Ended' : 'In Progress') : 'Not Started'}<br />
+                <strong>Max Voters:</strong> {roomInfo.maxVoters}<br />
+                <strong>Total Candidates:</strong> {roomInfo.candidates.length}<br />
             </div>
 
-            {isAdmin() && (
+            {isRoomAdmin() && (
                 <>
                     {!roomInfo.votingStarted && (
-                        <button onClick={handleStartVote} disabled={actionLoading}>Start Voting</button>
+                        <button onClick={() => handleTx("startVote")} disabled={actionLoading}>Start Voting</button>
                     )}
                     {roomInfo.votingStarted && !roomInfo.votingEnded && (
-                        <button onClick={handleEndVote} disabled={actionLoading}>End Voting</button>
+                        <button onClick={() => handleTx("endVote")} disabled={actionLoading}>End Voting</button>
                     )}
 
                     <div style={{ marginTop: '1rem' }}>
@@ -257,7 +116,9 @@ export default function RoomInteract({ activeRoomAddress, setPage }) {
                             value={candidateName}
                             onChange={(e) => setCandidateName(e.target.value)}
                         />
-                        <button onClick={handleAddCandidate} disabled={actionLoading}>Add Candidate</button>
+                        <button onClick={() => handleTx("addCandidate", candidateName)} disabled={actionLoading}>
+                            Add Candidate
+                        </button>
                     </div>
 
                     <div style={{ marginTop: '1rem' }}>
@@ -267,40 +128,47 @@ export default function RoomInteract({ activeRoomAddress, setPage }) {
                             value={newVoterAddress}
                             onChange={(e) => setNewVoterAddress(e.target.value)}
                         />
-                        <button onClick={handleAddVoter} disabled={actionLoading}>Add Voter</button>
+                        <button onClick={() => handleTx("addVoter", newVoterAddress)} disabled={actionLoading}>
+                            Add Voter
+                        </button>
                     </div>
 
                     <div style={{ marginTop: '1rem' }}>
-                        <button onClick={handleResetRoom} disabled={actionLoading}>Reset Room</button>
+                        <button onClick={() => handleTx("resetRoom")} disabled={actionLoading}>Reset Room</button>
                     </div>
                 </>
             )}
 
-            {isAdmin() && (
+            {(isRoomAdmin() || isSuperAdmin()) && (
                 <div style={{ marginTop: '1rem' }}>
-                    <button onClick={handleDeactivateRoom} disabled={actionLoading} style={{ backgroundColor: 'red', color: 'white' }}>
+                    <button
+                        onClick={() => {
+                            if (window.confirm('Deactivate this room?')) handleTx("deactivateRoom");
+                        }}
+                        disabled={actionLoading}
+                        style={{ backgroundColor: 'red', color: 'white' }}
+                    >
                         Deactivate Room
                     </button>
                 </div>
             )}
 
-
             <h3 style={{ marginTop: '2rem' }}>Candidates</h3>
             <ul>
-                {roomInfo.candidates.map((candidate, index) => (
-                    <li key={index} style={{ marginBottom: '1rem' }}>
+                {roomInfo.candidates.map((candidate, idx) => (
+                    <li key={idx} style={{ marginBottom: '1rem' }}>
                         <div><strong>{candidate.name}</strong> (Votes: {candidate.voteCount.toString()})</div>
                         {roomInfo.votingStarted && !roomInfo.votingEnded && (
-                            <button onClick={() => handleVote(candidate.id)} disabled={actionLoading}>Vote</button>
+                            <button onClick={() => handleTx("vote", candidate.id)} disabled={actionLoading}>Vote</button>
                         )}
                     </li>
                 ))}
             </ul>
 
             <div style={{ marginTop: '2rem' }}>
-                <button onClick={() => setPage('create')}>Back to Home</button>
+                <button onClick={() => setPage('roommembers')}>View Room Members</button>
+                <button onClick={() => setPage('myrooms')} style={{ marginLeft: '1rem' }}>Back to My Rooms</button>
             </div>
         </div>
     );
 }
-
