@@ -3,7 +3,8 @@ import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 
-const ROOM_FACTORY_ADDRESS = "0xD4a27A0f15af108B164824B8Ff0EA53eE362959a";
+// ✅ Alamat RoomFactory yang menggunakan cloning
+const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
 export default function CreateRoom() {
     const { account } = useWallet();
@@ -28,8 +29,9 @@ export default function CreateRoom() {
 
             const roomFactory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
 
+            // 🔁 createRoom akan otomatis menggunakan VotingRoom clone
             const tx = await roomFactory.createRoom(roomName, description, maxVoters);
-            await tx.wait();
+            const receipt = await tx.wait();
 
             setTxHash(tx.hash);
             alert('Room created successfully!');

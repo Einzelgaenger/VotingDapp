@@ -1,8 +1,11 @@
 import { ethers } from "ethers";
 import RoomFactoryAbi from "../abis/RoomFactory.json";
+import VotingRoomAbi from "../abis/VotingRoom.json";
 
-const ROOM_FACTORY_ADDRESS = "0xD4a27A0f15af108B164824B8Ff0EA53eE362959a";
+// ✅ Address RoomFactory terbaru
+const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
+// 🔐 Deteksi peran pengguna: creator, superadmin, atau user biasa
 export async function getUserRole(account, provider) {
     if (!account || !provider) return "user";
 
@@ -27,3 +30,8 @@ export async function getUserRole(account, provider) {
         return "user";
     }
 }
+
+// 📦 Untuk mendapatkan instance VotingRoom clone
+export const getVotingRoomContract = (address, signerOrProvider) => {
+    return new ethers.Contract(address, VotingRoomAbi, signerOrProvider);
+};

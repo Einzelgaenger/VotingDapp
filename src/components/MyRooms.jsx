@@ -4,7 +4,8 @@ import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
-const ROOM_FACTORY_ADDRESS = "0xD4a27A0f15af108B164824B8Ff0EA53eE362959a";
+// ✅ RoomFactory address (clone-based)
+const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
 export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const { account } = useWallet();
@@ -29,14 +30,14 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                 index,
                 address: room.roomAddress,
                 roomName: room.roomName,
-                description: '',         // Will be fetched
-                votersCount: null,       // Will be fetched
-                candidatesCount: null    // Will be fetched
+                description: '',
+                votersCount: null,
+                candidatesCount: null
             }));
 
             setRooms(formatted);
 
-            // Fetch room details lazily per room
+            // Lazy load room detail per room
             formatted.forEach((room, i) => fetchRoomDetail(room.address, i));
         } catch (err) {
             console.error('Error fetching my rooms:', err);

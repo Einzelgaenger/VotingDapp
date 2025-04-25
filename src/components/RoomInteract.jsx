@@ -9,6 +9,9 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const [loading, setLoading] = useState(true);
     const [candidateName, setCandidateName] = useState('');
     const [newVoterAddress, setNewVoterAddress] = useState('');
+    const [newVoterName, setNewVoterName] = useState('');
+    const [removeVoterAddress, setRemoveVoterAddress] = useState('');
+    const [removeCandidateId, setRemoveCandidateId] = useState('');
     const [newAdminAddress, setNewAdminAddress] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
@@ -64,10 +67,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
 
     const isRoomAdmin = () => account.toLowerCase() === roomInfo?.roomAdmin;
     const isSuperAdmin = () => account.toLowerCase() === roomInfo?.superAdmin;
-    const isVoter = () => {
-        return roomInfo?.voters?.includes(account.toLowerCase());
-    };
-
+    const isVoter = () => roomInfo?.voters?.includes(account.toLowerCase());
 
     const handleTx = async (method, ...args) => {
         try {
@@ -133,8 +133,38 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                             value={newVoterAddress}
                             onChange={(e) => setNewVoterAddress(e.target.value)}
                         />
-                        <button onClick={() => handleTx("addVoter", newVoterAddress)} disabled={actionLoading}>
+                        <input
+                            type="text"
+                            placeholder="Voter Name"
+                            value={newVoterName}
+                            onChange={(e) => setNewVoterName(e.target.value)}
+                        />
+                        <button onClick={() => handleTx("addVoter", newVoterAddress, newVoterName)} disabled={actionLoading}>
                             Add Voter
+                        </button>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                        <input
+                            type="text"
+                            placeholder="Remove Voter Address"
+                            value={removeVoterAddress}
+                            onChange={(e) => setRemoveVoterAddress(e.target.value)}
+                        />
+                        <button onClick={() => handleTx("removeVoter", removeVoterAddress)} disabled={actionLoading}>
+                            Remove Voter
+                        </button>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                        <input
+                            type="text"
+                            placeholder="Remove Candidate ID"
+                            value={removeCandidateId}
+                            onChange={(e) => setRemoveCandidateId(e.target.value)}
+                        />
+                        <button onClick={() => handleTx("removeCandidate", removeCandidateId)} disabled={actionLoading}>
+                            Remove Candidate
                         </button>
                     </div>
 
@@ -142,6 +172,9 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                         <button onClick={() => handleTx("clearVotes")} disabled={actionLoading}>Clear Votes</button>
                         <button onClick={() => handleTx("clearCandidates")} disabled={actionLoading} style={{ marginLeft: '1rem' }}>
                             Clear Candidates
+                        </button>
+                        <button onClick={() => handleTx("clearVoters")} disabled={actionLoading} style={{ marginLeft: '1rem' }}>
+                            Clear Voters
                         </button>
                         <button onClick={() => handleTx("resetRoom")} disabled={actionLoading} style={{ marginLeft: '1rem' }}>
                             Reset Room

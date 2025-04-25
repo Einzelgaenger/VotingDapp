@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
+import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
 export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'roomdetail' }) {
+    const { account } = useWallet();
     const [candidates, setCandidates] = useState([]);
     const [voters, setVoters] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [roomAdmin, setRoomAdmin] = useState('');
+    const [superAdmin, setSuperAdmin] = useState('');
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         if (activeRoomAddress) {
@@ -15,20 +20,34 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
 
     const fetchMembers = async () => {
         try {
+            setLoading(true);
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, provider);
 
-            const [candidatesRaw, voterAddresses] = await Promise.all([
+            const [
+                candidatesRaw,
+                voterAddresses,
+                voterNames,
+                fetchedRoomAdmin,
+                fetchedSuperAdmin
+            ] = await Promise.all([
                 contract.getCandidates(),
-                contract.getVoters()
+                contract.getVoterDetails().then(res => res[0]),
+                contract.getVoterDetails().then(res => res[1]),
+                contract.roomAdmin(),
+                contract.superAdmin()
             ]);
 
+            setRoomAdmin(fetchedRoomAdmin.toLowerCase());
+            setSuperAdmin(fetchedSuperAdmin.toLowerCase());
+
             const votersExpanded = await Promise.all(
-                voterAddresses.map(async (addr) => {
-                    const data = await contract.voters(addr);
+                voterAddresses.map(async (addr, i) => {
+                    const voterData = await contract.voters(addr);
                     return {
                         address: addr,
-                        hasVoted: data.hasVoted
+                        name: voterNames[i],
+                        hasVoted: voterData.hasVoted
                     };
                 })
             );
@@ -39,11 +58,40 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
             });
 
             setCandidates(sortedCandidates);
-            setVoters(votersExpanded);
+            // setVoters(votersExpanded);
+            const sortedVoters = votersExpanded.sort((a, b) =>
+                a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+            );
+            setVoters(sortedVoters);
+
         } catch (err) {
             console.error('Failed to load members:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const isRoomAdmin = () => account?.toLowerCase() === roomAdmin;
+    const isSuperAdmin = () => account?.toLowerCase() === superAdmin;
+
+    const handleRemoveVoter = async (voterAddress) => {
+        if (!window.confirm(`Remove voter ${voterAddress}?`)) return;
+
+        try {
+            setActionLoading(true);
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
+
+            const tx = await contract.removeVoter(voterAddress);
+            await tx.wait();
+            await fetchMembers();
+            alert('Voter removed!');
+        } catch (err) {
+            console.error('Error removing voter:', err);
+            alert('Failed to remove voter');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -72,8 +120,19 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
             ) : (
                 <ul>
                     {voters.map((voter, idx) => (
-                        <li key={idx}>
-                            {voter.address} — {voter.hasVoted ? '✅ Voted' : '❌ Not Voted'}
+                        <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <span>
+                                {voter.name} ({voter.address}) — {voter.hasVoted ? '✅ Voted' : '❌ Not Voted'}
+                            </span>
+                            {(isRoomAdmin() || isSuperAdmin()) && (
+                                <button
+                                    onClick={() => handleRemoveVoter(voter.address)}
+                                    disabled={actionLoading}
+                                    style={{ background: 'red', color: 'white' }}
+                                >
+                                    🗑️ Remove
+                                </button>
+                            )}
                         </li>
                     ))}
                 </ul>
