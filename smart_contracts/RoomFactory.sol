@@ -2,6 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "./VotingRoom.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
+/// @title RoomFactory 🏭 (Cloning Edition)
+/// @notice Membuat VotingRoom menggunakan EIP-1167 Cloning (minimal proxy)
 
 interface IVotingRoom {
     function deactivateRoom() external;
@@ -9,6 +13,11 @@ interface IVotingRoom {
 }
 
 contract RoomFactory {
+    using Clones for address;
+
+    // 🧱 Template contract
+    address public immutable roomImplementation;
+
     address public creator;
     address[] public superAdmins;
 
@@ -20,16 +29,26 @@ contract RoomFactory {
     }
 
     RoomInfo[] public rooms;
-    mapping(address => address[]) public roomsByUser; // ✅ NEW
+    mapping(address => address[]) public roomsByUser;
 
+    // 📢 Events
     event CreatorTransferred(address indexed oldOwner, address indexed newOwner);
     event SuperAdminAdded(address indexed newAdmin);
     event SuperAdminRemoved(address indexed removedAdmin);
+    event RoomCreated(address indexed roomAddress, string roomName, address indexed createdBy);
+    event RoomDeleted(address indexed roomAddress, string roomName, address indexed deletedBy);
 
-    constructor() {
+    constructor(address _roomImplementation) {
+        require(_roomImplementation != address(0), "Invalid implementation");
+        roomImplementation = _roomImplementation;
+
         creator = msg.sender;
         superAdmins.push(creator);
     }
+
+    // =====================
+    // 🔐 Modifiers
+    // =====================
 
     modifier onlyCreator() {
         require(msg.sender == creator, "Not creator");
@@ -41,6 +60,10 @@ contract RoomFactory {
         _;
     }
 
+    // =====================
+    // 🛠️ Admin Controls
+    // =====================
+
     function isSuperAdmin(address addr) public view returns (bool) {
         for (uint i = 0; i < superAdmins.length; i++) {
             if (superAdmins[i] == addr) {
@@ -50,6 +73,12 @@ contract RoomFactory {
         return false;
     }
 
+    function transferCreator(address newCreator) public onlyCreator {
+        require(newCreator != address(0), "Invalid address");
+        emit CreatorTransferred(creator, newCreator);
+        creator = newCreator;
+    }
+
     function addSuperAdmin(address newAdmin) public onlyCreator {
         require(newAdmin != address(0), "Invalid address");
         superAdmins.push(newAdmin);
@@ -57,44 +86,46 @@ contract RoomFactory {
     }
 
     function removeSuperAdmin(address adminToRemove) public onlyCreator {
-        require(adminToRemove != address(0), "Invalid address");
         require(adminToRemove != creator, "Cannot remove creator");
 
-        uint indexToRemove = superAdmins.length;
+        uint index = superAdmins.length;
         for (uint i = 0; i < superAdmins.length; i++) {
             if (superAdmins[i] == adminToRemove) {
-                indexToRemove = i;
+                index = i;
                 break;
             }
         }
-        require(indexToRemove < superAdmins.length, "Admin not found");
+        require(index < superAdmins.length, "Not found");
 
-        for (uint i = indexToRemove; i < superAdmins.length - 1; i++) {
+        for (uint i = index; i < superAdmins.length - 1; i++) {
             superAdmins[i] = superAdmins[i + 1];
         }
         superAdmins.pop();
         emit SuperAdminRemoved(adminToRemove);
     }
 
-    function transferCreator(address newCreator) public onlyCreator {
-        require(newCreator != address(0), "Invalid address");
-        emit CreatorTransferred(creator, newCreator);
-        creator = newCreator;
-    }
+    // =====================
+    // 🏗️ Room Lifecycle
+    // =====================
 
     function createRoom(string memory name, string memory description, uint256 maxVoters) public returns (address) {
-        VotingRoom newRoom = new VotingRoom(creator, msg.sender, name, description, maxVoters);
-        rooms.push(RoomInfo(address(newRoom), name, description, msg.sender));
-        roomsByUser[msg.sender].push(address(newRoom));
-        return address(newRoom);
+        address clone = roomImplementation.clone(); // 🔁 clone VotingRoom
+        VotingRoom(clone).initialize(creator, msg.sender, name, description, maxVoters);
+
+        rooms.push(RoomInfo(clone, name, description, msg.sender));
+        roomsByUser[msg.sender].push(clone);
+
+        emit RoomCreated(clone, name, msg.sender);
+        return clone;
     }
 
-
     function deactivateAndDeleteRoom(uint index) public onlyCreatorOrSuperAdmin {
-        require(index < rooms.length, "Invalid room index");
+        require(index < rooms.length, "Invalid index");
 
-        IVotingRoom votingRoom = IVotingRoom(rooms[index].roomAddress);
-        votingRoom.deactivateRoom();
+        RoomInfo memory info = rooms[index];
+        IVotingRoom(info.roomAddress).deactivateRoom();
+
+        emit RoomDeleted(info.roomAddress, info.roomName, msg.sender);
 
         for (uint i = index; i < rooms.length - 1; i++) {
             rooms[i] = rooms[i + 1];
@@ -104,30 +135,32 @@ contract RoomFactory {
 
     function factoryReset() public onlyCreator {
         for (uint i = 0; i < rooms.length; i++) {
-            IVotingRoom votingRoom = IVotingRoom(rooms[i].roomAddress);
-            votingRoom.deactivateRoom();
+            IVotingRoom(rooms[i].roomAddress).deactivateRoom();
         }
         delete rooms;
         delete superAdmins;
         superAdmins.push(creator);
     }
 
-    function getRoomStatus(uint index) public view returns (bool) {
-        require(index < rooms.length, "Invalid index");
-        IVotingRoom votingRoom = IVotingRoom(rooms[index].roomAddress);
-        return votingRoom.isActive();
-    }
+    // =====================
+    // 🔍 Views
+    // =====================
 
     function getRooms() public view returns (RoomInfo[] memory) {
         return rooms;
     }
 
     function getRoomsByAddress(address user) public view returns (address[] memory) {
-        return roomsByUser[user]; // ✅ NEW & lebih efisien
+        return roomsByUser[user];
     }
 
     function getRoomCountByUser(address user) public view returns (uint256) {
-        return roomsByUser[user].length; // ✅ NEW
+        return roomsByUser[user].length;
+    }
+
+    function getRoomStatus(uint index) public view returns (bool) {
+        require(index < rooms.length, "Invalid index");
+        return IVotingRoom(rooms[index].roomAddress).isActive();
     }
 
     function getSuperAdmins() public view returns (address[] memory) {
