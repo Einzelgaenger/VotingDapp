@@ -1,34 +1,54 @@
 [
     {
+        "anonymous": false,
         "inputs": [
             {
-                "internalType": "address",
-                "name": "_superAdmin",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "_roomAdmin",
-                "type": "address"
-            },
-            {
-                "internalType": "string",
-                "name": "_roomName",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "_description",
-                "type": "string"
-            },
-            {
+                "indexed": true,
                 "internalType": "uint256",
-                "name": "_maxVoters",
+                "name": "candidateId",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
             }
         ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
+        "name": "CandidateAdded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "candidateId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "name": "CandidateRemoved",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "clearedBy",
+                "type": "address"
+            }
+        ],
+        "name": "CandidatesCleared",
+        "type": "event"
     },
     {
         "anonymous": false,
@@ -47,6 +67,19 @@
             }
         ],
         "name": "RoomAdminTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "resetBy",
+                "type": "address"
+            }
+        ],
+        "name": "RoomReset",
         "type": "event"
     },
     {
@@ -81,6 +114,64 @@
         "type": "event"
     },
     {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "voter",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "name": "VoterAdded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "voter",
+                "type": "address"
+            }
+        ],
+        "name": "VoterRemoved",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "clearedBy",
+                "type": "address"
+            }
+        ],
+        "name": "VotersCleared",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "clearedBy",
+                "type": "address"
+            }
+        ],
+        "name": "VotesCleared",
+        "type": "event"
+    },
+    {
         "inputs": [
             {
                 "internalType": "string",
@@ -99,6 +190,11 @@
                 "internalType": "address",
                 "name": "voter",
                 "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
             }
         ],
         "name": "addVoter",
@@ -138,6 +234,13 @@
     {
         "inputs": [],
         "name": "clearCandidates",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "clearVoters",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -221,6 +324,43 @@
     },
     {
         "inputs": [],
+        "name": "getVoterDetails",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            },
+            {
+                "internalType": "string[]",
+                "name": "",
+                "type": "string[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "voter",
+                "type": "address"
+            }
+        ],
+        "name": "getVoterName",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "getVoters",
         "outputs": [
             {
@@ -252,8 +392,73 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_superAdmin",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_roomAdmin",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "_roomName",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_description",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_maxVoters",
+                "type": "uint256"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "initialized",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "isActive",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "isVoterRegistered",
         "outputs": [
             {
                 "internalType": "bool",
@@ -275,6 +480,32 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "candidateId",
+                "type": "uint256"
+            }
+        ],
+        "name": "removeCandidate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "voter",
+                "type": "address"
+            }
+        ],
+        "name": "removeVoter",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -370,6 +601,25 @@
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "voterNames",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
             }
         ],
         "stateMutability": "view",
