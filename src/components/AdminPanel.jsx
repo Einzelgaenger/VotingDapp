@@ -1,189 +1,219 @@
-import { useState, useEffect } from 'react';
+// Updated AdminPanel.jsx
+
+import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import RoomFactoryAbi from '../abis/RoomFactory.json';
 import { useWallet } from '../contexts/WalletContext';
+import RoomFactoryAbi from '../abis/RoomFactory.json';
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
 export default function AdminPanel({ setPage }) {
-    const { account } = useWallet();
-    const [tab, setTab] = useState('room'); // 'room' or 'admin'
+    const { account, role } = useWallet();
     const [rooms, setRooms] = useState([]);
     const [superAdmins, setSuperAdmins] = useState([]);
-    const [creator, setCreator] = useState('');
-    const [newAdminAddress, setNewAdminAddress] = useState('');
-    const [newCreatorAddress, setNewCreatorAddress] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [addSuperAdminAddress, setAddSuperAdminAddress] = useState('');
+    const [removeSuperAdminAddress, setRemoveSuperAdminAddress] = useState('');
+    const [newCreator, setNewCreator] = useState('');
+    const [activeTab, setActiveTab] = useState('room');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetchFactoryData();
-    }, []);
+        if (account) {
+            fetchRooms();
+            fetchSuperAdmins();
+        }
+    }, [account]);
 
-    const fetchFactoryData = async () => {
+    const fetchRooms = async () => {
         try {
             setLoading(true);
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
-
-            const [creatorAddr, superAdminsRaw, roomsRaw] = await Promise.all([
-                factory.creator(),
-                factory.getSuperAdmins(),
-                factory.getRooms()
-            ]);
-
-            setCreator(creatorAddr);
-            setSuperAdmins(superAdminsRaw);
-            setRooms(roomsRaw);
-        } catch (error) {
-            console.error('Failed to load factory data:', error);
+            const allRooms = await factory.getRooms();
+            setRooms(allRooms.reverse()); // 🔥 Urutkan dari newest
+        } catch (err) {
+            console.error('Failed to fetch rooms:', err);
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchSuperAdmins = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
+            const admins = await factory.getSuperAdmins();
+            setSuperAdmins(admins);
+        } catch (err) {
+            console.error('Failed to fetch superadmins:', err);
+        }
+    };
+
     const handleTx = async (method, ...args) => {
         try {
+            setLoading(true);
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
-
             const tx = await factory[method](...args);
             await tx.wait();
             alert(`${method} success!`);
-            fetchFactoryData();
-        } catch (error) {
-            console.error(`Error during ${method}:`, error);
+            await fetchRooms();
+            await fetchSuperAdmins();
+            clearInputs();
+        } catch (err) {
+            console.error(`Error during ${method}:`, err);
             alert(`Failed to ${method}`);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleDeleteRoom = (index) => {
-        if (window.confirm('Are you sure to deactivate and delete this room?')) {
-            handleTx('deactivateAndDeleteRoom', index);
-        }
-    };
-
-    const handleFactoryReset = () => {
-        if (window.confirm('⚠️ WARNING: This will deactivate and delete all rooms! Continue?')) {
-            handleTx('factoryReset');
-        }
-    };
-
-    const handleAddSuperAdmin = () => {
-        if (!newAdminAddress) {
-            alert('Please input an address.');
+    const handleAddSuperAdmin = async () => {
+        if (!addSuperAdminAddress) {
+            alert('Please enter an address.');
             return;
         }
-        handleTx('addSuperAdmin', newAdminAddress);
-    };
 
-    const handleRemoveSuperAdmin = (addressToRemove) => {
-        if (window.confirm(`Remove SuperAdmin ${addressToRemove}?`)) {
-            handleTx('removeSuperAdmin', addressToRemove);
-        }
-    };
+        const lowerAddress = addSuperAdminAddress.toLowerCase();
+        const isAlreadySuperAdmin = superAdmins.some(addr => addr.toLowerCase() === lowerAddress);
 
-    const handleTransferCreator = () => {
-        if (!newCreatorAddress) {
-            alert('Please input new creator address.');
+        if (isAlreadySuperAdmin) {
+            alert('This address is already a super admin.');
             return;
         }
-        if (window.confirm(`Are you sure to transfer creator role to ${newCreatorAddress}?`)) {
-            handleTx('transferCreator', newCreatorAddress);
-        }
+
+        await handleTx('addSuperAdmin', addSuperAdminAddress);
     };
 
-    if (loading) return <div style={{ padding: '2rem' }}>Loading admin panel...</div>;
+    const handleRemoveSuperAdmin = async () => {
+        if (!removeSuperAdminAddress) {
+            alert('Please enter an address.');
+            return;
+        }
+
+        const lowerAddress = removeSuperAdminAddress.toLowerCase();
+        const isSuperAdmin = superAdmins.some(addr => addr.toLowerCase() === lowerAddress);
+
+        if (!isSuperAdmin) {
+            alert('This address is not a current super admin.');
+            return;
+        }
+
+        await handleTx('removeSuperAdmin', removeSuperAdminAddress);
+    };
+
+    const clearInputs = () => {
+        setAddSuperAdminAddress('');
+        setRemoveSuperAdminAddress('');
+        setNewCreator('');
+    };
 
     return (
         <div style={{ padding: '2rem' }}>
             <h2>🛠️ Admin Panel</h2>
 
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                <button onClick={() => setTab('room')} disabled={tab === 'room'}>🏠 Room Management</button>
-                <button onClick={() => setTab('admin')} disabled={tab === 'admin'}>🛡️ Admin Management</button>
+            <div style={{ marginBottom: '1rem' }}>
+                <button onClick={() => setActiveTab('room')} disabled={activeTab === 'room'}>
+                    Room Management
+                </button>
+                <button onClick={() => setActiveTab('admin')} disabled={activeTab === 'admin'} style={{ marginLeft: '1rem' }}>
+                    Admin Management
+                </button>
             </div>
 
-            {tab === 'room' && (
+            {activeTab === 'room' && (
                 <>
-                    <h3>🏠 Room Management</h3>
-
+                    <h3>📋 Rooms</h3>
                     {rooms.length === 0 ? (
                         <p>No rooms created yet.</p>
                     ) : (
                         rooms.map((room, idx) => (
-                            <div key={idx} style={{ border: '1px solid #aaa', padding: '1rem', marginBottom: '1rem' }}>
-                                <strong>Room Name:</strong> {room.roomName} <br />
-                                <strong>Room Address:</strong> {room.roomAddress} <br />
-                                <strong>Created By:</strong> {room.createdBy} <br />
-                                <button onClick={() => handleDeleteRoom(idx)} style={{ marginTop: '0.5rem', backgroundColor: 'red', color: 'white' }}>
-                                    Deactivate & Delete Room
-                                </button>
+                            <div key={idx} style={{ border: '1px solid gray', padding: '1rem', marginBottom: '1rem' }}>
+                                <div><strong>Name:</strong> {room.roomName}</div>
+                                <div><strong>Address:</strong> {room.roomAddress}</div>
+                                <div><strong>Created by:</strong> {room.createdBy}</div>
                             </div>
                         ))
                     )}
-
-                    <div style={{ marginTop: '2rem' }}>
-                        <button onClick={handleFactoryReset} style={{ backgroundColor: 'red', color: 'white' }}>
-                            ⚡ Factory Reset All Rooms
-                        </button>
-                    </div>
                 </>
             )}
 
-            {tab === 'admin' && (
+            {activeTab === 'admin' && (
                 <>
-                    <h3>🛡️ Admin Management</h3>
+                    <h3>👑 Admin Management</h3>
 
-                    <h4>Current Creator</h4>
-                    <p>{creator}</p>
-
-                    <h4>SuperAdmins</h4>
-                    <ul>
-                        {/* Creator always on top */}
-                        {[creator, ...superAdmins.filter(addr => addr.toLowerCase() !== creator.toLowerCase())].map((admin, idx) => (
-                            <li key={idx} style={{ marginBottom: '0.5rem' }}>
-                                {admin}
-                                {admin.toLowerCase() !== creator.toLowerCase() && (
-                                    <button onClick={() => handleRemoveSuperAdmin(admin)} style={{ marginLeft: '1rem' }}>
-                                        ❌ Remove
-                                    </button>
-                                )}
-                                {admin.toLowerCase() === creator.toLowerCase() && <span> (Creator)</span>}
-                            </li>
-                        ))}
-                    </ul>
-
-                    <div style={{ marginTop: '2rem' }}>
-                        <input
-                            type="text"
-                            placeholder="New SuperAdmin Address"
-                            value={newAdminAddress}
-                            onChange={(e) => setNewAdminAddress(e.target.value)}
-                            style={{ marginRight: '1rem' }}
-                        />
-                        <button onClick={handleAddSuperAdmin}>
-                            ➕ Add SuperAdmin
-                        </button>
+                    <div>
+                        <h4>🧙 Super Admins</h4>
+                        {superAdmins.length === 0 ? (
+                            <p>No superadmins yet.</p>
+                        ) : (
+                            <ul>
+                                {superAdmins.map((addr, idx) => (
+                                    <li key={idx}>
+                                        {addr} {idx === 0 && <strong>(Creator)</strong>}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
 
-                    <div style={{ marginTop: '2rem' }}>
-                        <input
-                            type="text"
-                            placeholder="New Creator Address"
-                            value={newCreatorAddress}
-                            onChange={(e) => setNewCreatorAddress(e.target.value)}
-                            style={{ marginRight: '1rem' }}
-                        />
-                        <button onClick={handleTransferCreator} style={{ backgroundColor: 'gold' }}>
-                            👑 Transfer Creator
-                        </button>
-                    </div>
+                    {role === 'creator' && (
+                        <>
+                            <div style={{ marginTop: '1rem' }}>
+                                <h4>➕ Add SuperAdmin</h4>
+                                <input
+                                    type="text"
+                                    placeholder="Address"
+                                    value={addSuperAdminAddress}
+                                    onChange={(e) => setAddSuperAdminAddress(e.target.value)}
+                                />
+                                <button onClick={handleAddSuperAdmin} disabled={loading}>Add</button>
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <h4>➖ Remove SuperAdmin</h4>
+                                <input
+                                    type="text"
+                                    placeholder="Address"
+                                    value={removeSuperAdminAddress}
+                                    onChange={(e) => setRemoveSuperAdminAddress(e.target.value)}
+                                />
+                                <button onClick={handleRemoveSuperAdmin} disabled={loading}>Remove</button>
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <h4>🔄 Transfer Creator</h4>
+                                <input
+                                    type="text"
+                                    placeholder="New Creator Address"
+                                    value={newCreator}
+                                    onChange={(e) => setNewCreator(e.target.value)}
+                                />
+                                <button onClick={() => handleTx('transferCreator', newCreator)} disabled={loading}>Transfer Creator</button>
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <h4>💥 Hard Reset</h4>
+                                <button
+                                    style={{ backgroundColor: 'red', color: 'white' }}
+                                    onClick={() => {
+                                        if (window.confirm('Are you sure to perform Hard Reset? This will clear rooms and reset admins.')) {
+                                            handleTx('factoryReset');
+                                        }
+                                    }}
+                                    disabled={loading}
+                                >
+                                    Hard Reset
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </>
             )}
 
             <div style={{ marginTop: '2rem' }}>
-                <button onClick={() => setPage('myrooms')}>Back to My Rooms</button>
+                <button onClick={() => setPage('create')}>Back to Home</button>
             </div>
         </div>
     );
