@@ -6,6 +6,7 @@ import JoinRoom from './components/JoinRoom';
 import RoomDetail from './components/RoomDetail';
 import RoomInteract from './components/RoomInteract';
 import RoomMember from './components/RoomMember';
+import AdminPanel from './components/AdminPanel'; // ✅ import AdminPanel
 
 function App() {
   const [page, setPage] = useState('create');
@@ -27,6 +28,7 @@ function App() {
       {page === 'roommembers' && activeRoomAddress && (
         <RoomMember activeRoomAddress={activeRoomAddress} setPage={setPage} returnPage={returnPage} />
       )}
+      {page === 'adminpanel' && <AdminPanel setPage={setPage} />} {/* ✅ add AdminPanel */}
     </>
   );
 }

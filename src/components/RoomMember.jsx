@@ -59,9 +59,12 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
 
             setCandidates(sortedCandidates);
             // setVoters(votersExpanded);
-            const sortedVoters = votersExpanded.sort((a, b) =>
-                a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-            );
+            const sortedVoters = votersExpanded.sort((a, b) => {
+                if (a.hasVoted !== b.hasVoted) {
+                    return a.hasVoted ? -1 : 1; // ✅ yang sudah vote di atas
+                }
+                return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); // 📚 kalau sama, urut nama A-Z
+            });
             setVoters(sortedVoters);
 
         } catch (err) {

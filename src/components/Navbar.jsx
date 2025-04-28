@@ -18,8 +18,7 @@ export default function Navbar({ setPage }) {
 
                         {/* Kalau role = creator atau superadmin, munculkan tombol Admin Panel */}
                         {(role === 'creator' || role === 'superadmin') && (
-                            <button onClick={() => setPage('admin')}>Admin Panel</button>
-                        )}
+                            <button onClick={() => setPage('adminpanel')}>Admin Panel</button>)}
                     </>
                 )}
             </div>
