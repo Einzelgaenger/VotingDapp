@@ -1,71 +1,65 @@
-// ✅ HomePage.jsx - Updated to Match LandingPage + FeaturesSection
-
 import { useWallet } from '../contexts/WalletContext';
+import { Sparkles, PlusCircle, ClipboardList, KeyRound } from 'lucide-react';
 
 export default function HomePage({ setPage }) {
     const { account } = useWallet();
 
     return (
-        <div className="bg-white text-gray-800 font-sans min-h-screen">
-            <div className="max-w-6xl mx-auto px-6 pt-24 pb-32 text-center">
-                <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
-                    Dashboard
-                </h1>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-12">
-                    {account ? `Welcome ${account.slice(0, 6)}...${account.slice(-4)}!` : 'Manage and interact with your voting rooms easily.'}
+        <div className="p-6 sm:p-10">
+            <div className="text-center mb-10">
+                <h1 className="text-4xl font-bold mb-2 text-gray-800">Welcome back!</h1>
+                <p className="text-gray-500 text-lg">
+                    {account ? `Hello ${account.slice(0, 6)}...${account.slice(-4)}, ready to vote?` : 'Manage your rooms easily.'}
                 </p>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <ActionCard
-                        icon="➕"
-                        title="Create New Room"
-                        description="Start a new decentralized voting room easily."
-                        buttonLabel="Create Room"
-                        onClick={() => setPage('create')}
-                        bgColor="bg-indigo-500 hover:bg-indigo-600"
-                        iconColor="bg-indigo-100 text-indigo-600"
-                    />
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <ActionCard
+                    icon={<PlusCircle className="w-6 h-6" />}
+                    title="Create New Room"
+                    desc="Start a secure and decentralized voting room instantly."
+                    color="bg-indigo-100 text-indigo-700"
+                    onClick={() => setPage('create')}
+                />
+                <ActionCard
+                    icon={<ClipboardList className="w-6 h-6" />}
+                    title="My Rooms"
+                    desc="Access and manage rooms you’ve created."
+                    color="bg-blue-100 text-blue-700"
+                    onClick={() => setPage('myrooms')}
+                />
+                <ActionCard
+                    icon={<KeyRound className="w-6 h-6" />}
+                    title="Join Room"
+                    desc="Join a room and cast your vote securely."
+                    color="bg-orange-100 text-orange-700"
+                    onClick={() => setPage('join')}
+                />
+            </div>
 
-                    <ActionCard
-                        icon="📋"
-                        title="My Rooms"
-                        description="View and manage your created or joined rooms."
-                        buttonLabel="My Rooms"
-                        onClick={() => setPage('myrooms')}
-                        bgColor="bg-blue-500 hover:bg-blue-600"
-                        iconColor="bg-blue-100 text-blue-600"
-                    />
-
-                    <ActionCard
-                        icon="🔑"
-                        title="Join Room"
-                        description="Enter existing voting rooms securely."
-                        buttonLabel="Join Room"
-                        onClick={() => setPage('join')}
-                        bgColor="bg-orange-500 hover:bg-orange-600"
-                        iconColor="bg-orange-100 text-orange-500"
-                    />
-                </div>
+            <div className="mt-12 text-center text-sm text-gray-400 flex justify-center items-center gap-1">
+                <Sparkles className="w-4 h-4" />
+                <span>Decentralized. Secure. Transparent.</span>
             </div>
         </div>
     );
 }
 
-function ActionCard({ icon, title, description, buttonLabel, onClick, bgColor, iconColor }) {
+function ActionCard({ icon, title, desc, color, onClick }) {
     return (
-        <div
-            className="flex flex-col items-center bg-gray-50 rounded-2xl shadow-md hover:shadow-lg p-8 transition transform hover:-translate-y-2 hover:scale-[1.02]"
-        >
-            <div className={`w-16 h-16 flex items-center justify-center rounded-xl mb-6 text-3xl ${iconColor}`}>
-                {icon}
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 flex flex-col justify-between">
+            <div>
+                <div className={`w-12 h-12 flex items-center justify-center rounded-lg mb-4 ${color}`}>
+                    {icon}
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">{title}</h2>
+                <p className="text-gray-600 text-sm">{desc}</p>
             </div>
-            <h2 className="text-2xl font-semibold mb-2">{title}</h2>
-            <p className="text-gray-600 text-sm mb-6">{description}</p>
             <button
                 onClick={onClick}
-                className={`${bgColor} text-white px-6 py-3 rounded-lg font-semibold shadow-md transition`}
+                className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition"
             >
-                {buttonLabel}
+                Go
             </button>
         </div>
     );
