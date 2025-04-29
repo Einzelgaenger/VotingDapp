@@ -3,16 +3,16 @@ import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 
-// ✅ Alamat RoomFactory yang menggunakan cloning
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
-export default function CreateRoom() {
+export default function CreateRoom({ setPage, setActiveRoomAddress }) {
     const { account } = useWallet();
     const [roomName, setRoomName] = useState('');
     const [description, setDescription] = useState('');
     const [maxVoters, setMaxVoters] = useState('');
     const [loading, setLoading] = useState(false);
     const [txHash, setTxHash] = useState(null);
+    const [newRoomAddress, setNewRoomAddress] = useState(null);
 
     const handleCreateRoom = async () => {
         if (!roomName || !description || !maxVoters) {
@@ -20,26 +20,47 @@ export default function CreateRoom() {
             return;
         }
 
+        if (isNaN(maxVoters) || Number(maxVoters) <= 0) { // 🔥 tambah validasi
+            alert('Max voters must be greater than 0');
+            return;
+        }
+
         try {
             setLoading(true);
             setTxHash(null);
+            setNewRoomAddress(null);
 
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
-
             const roomFactory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
 
-            // 🔁 createRoom akan otomatis menggunakan VotingRoom clone
             const tx = await roomFactory.createRoom(roomName, description, maxVoters);
             const receipt = await tx.wait();
 
             setTxHash(tx.hash);
             alert('Room created successfully!');
+
+            const event = receipt.events.find((e) => e.event === "RoomCreated");
+            if (event) {
+                const roomAddress = event.args.roomAddress;
+                console.log("New Room Address:", roomAddress);
+                setNewRoomAddress(roomAddress);
+            } else {
+                console.warn('RoomCreated event not found in tx receipt');
+            }
+
         } catch (error) {
             console.error('Error creating room:', error);
             alert('Failed to create room. See console for details.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleJoinNewRoom = () => {
+        if (newRoomAddress) {
+            setActiveRoomAddress(newRoomAddress);
+            setPage('roominteract');
         }
     };
 
@@ -76,6 +97,14 @@ export default function CreateRoom() {
                         <a href={`https://sepolia.etherscan.io/tx/${txHash}`} target="_blank" rel="noopener noreferrer">
                             {txHash}
                         </a>
+                    </div>
+                )}
+
+                {newRoomAddress && (
+                    <div style={{ marginTop: '1rem' }}>
+                        <button onClick={handleJoinNewRoom} style={{ backgroundColor: 'green', color: 'white' }}>
+                            🚀 Join New Room
+                        </button>
                     </div>
                 )}
             </div>

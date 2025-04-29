@@ -16,19 +16,55 @@ function App() {
   return (
     <>
       <Navbar setPage={setPage} />
-      {page === 'create' && <CreateRoom />}
-      {page === 'myrooms' && <MyRooms setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}
-      {page === 'join' && <JoinRoom setActiveRoomAddress={setActiveRoomAddress} setPage={setPage} />}
+
+      {page === 'create' && (
+        <CreateRoom
+          setPage={setPage} // ✅ tambahan props ke CreateRoom
+          setActiveRoomAddress={setActiveRoomAddress} // ✅ tambahan props
+        />
+      )}
+
+      {page === 'myrooms' && (
+        <MyRooms
+          setPage={setPage}
+          setActiveRoomAddress={setActiveRoomAddress}
+        />
+      )}
+
+      {page === 'join' && (
+        <JoinRoom
+          setActiveRoomAddress={setActiveRoomAddress}
+          setPage={setPage}
+        />
+      )}
+
       {page === 'roomdetail' && activeRoomAddress && (
-        <RoomDetail activeRoomAddress={activeRoomAddress} setPage={setPage} setReturnPage={setReturnPage} />
+        <RoomDetail
+          activeRoomAddress={activeRoomAddress}
+          setPage={setPage}
+          setReturnPage={setReturnPage}
+        />
       )}
+
       {page === 'roominteract' && activeRoomAddress && (
-        <RoomInteract activeRoomAddress={activeRoomAddress} setPage={setPage} setReturnPage={setReturnPage} />
+        <RoomInteract
+          activeRoomAddress={activeRoomAddress}
+          setPage={setPage}
+          setReturnPage={setReturnPage}
+        />
       )}
+
       {page === 'roommembers' && activeRoomAddress && (
-        <RoomMember activeRoomAddress={activeRoomAddress} setPage={setPage} returnPage={returnPage} />
+        <RoomMember
+          activeRoomAddress={activeRoomAddress}
+          setPage={setPage}
+          returnPage={returnPage}
+        />
       )}
-      {page === 'adminpanel' && <AdminPanel setPage={setPage} />} {/* ✅ add AdminPanel */}
+
+      {page === 'adminpanel' && (
+        <AdminPanel setPage={setPage} />
+      )}
     </>
   );
 }
