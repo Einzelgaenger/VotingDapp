@@ -1,6 +1,5 @@
-// ✅ Final LandingPage.jsx - Redirect to Home after Connect
-
 import { useWallet } from '../contexts/WalletContext';
+import FeaturesSection from './FeaturesSection';
 
 export default function LandingPage({ setPage }) {
     const { account, connectWallet } = useWallet();
@@ -14,56 +13,54 @@ export default function LandingPage({ setPage }) {
     };
 
     return (
-        <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '90vh',
-            backgroundColor: '#fafafa',
-            color: '#333',
-            padding: '2rem',
-            textAlign: 'center',
-        }}>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome to Voting DApp</h1>
-            <p style={{ fontSize: '1.2rem', maxWidth: '600px', marginBottom: '2rem' }}>
-                Create, manage, and join decentralized voting rooms securely.
-            </p>
+        <div style={{ backgroundColor: '#F9FAFB', color: '#111827', minHeight: '100vh', padding: '2rem' }}>
+            {/* Hero Section */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                marginBottom: '4rem'
+            }}>
+                <h1 style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                    Welcome to Voting DApp
+                </h1>
+                <p style={{ fontSize: '1.25rem', maxWidth: '600px', marginBottom: '2rem' }}>
+                    Securely create, join, and manage decentralized voting rooms with ease.
+                </p>
 
-            {!account ? (
-                <button
-                    onClick={handleConnect}
-                    style={{
-                        padding: '0.8rem 2rem',
-                        backgroundColor: '#4caf50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '9999px',
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Connect Wallet
-                </button>
-            ) : (
-                <button
-                    onClick={() => setPage('home')}
-                    style={{
-                        marginTop: '2rem',
-                        padding: '0.8rem 2rem',
-                        backgroundColor: '#2196f3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '9999px',
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Continue to Dashboard
-                </button>
-            )}
+                {!account ? (
+                    <button
+                        onClick={handleConnect}
+                        style={primaryButton}
+                    >
+                        Connect Wallet
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => setPage('home')}
+                        style={primaryButton}
+                    >
+                        Go to Dashboard
+                    </button>
+                )}
+            </div>
+
+            {/* Features Section */}
+            <FeaturesSection />
         </div>
     );
 }
+
+const primaryButton = {
+    padding: '1rem 2rem',
+    backgroundColor: '#4F46E5',
+    color: 'white',
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    border: 'none',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+};
