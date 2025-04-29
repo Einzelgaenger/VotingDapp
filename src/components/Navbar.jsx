@@ -1,4 +1,4 @@
-// ✅ Updated Navbar.jsx - Cleaned up Role Display
+// ✅ Fixed Navbar.jsx - No Error When Wallet Not Connected
 
 import { useWallet } from '../contexts/WalletContext';
 import ConnectWalletButton from './ConnectWalletButton';
@@ -32,6 +32,7 @@ export default function Navbar({ setPage }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {/* ConnectWalletButton selalu tampil */}
                 <ConnectWalletButton />
             </div>
         </nav>

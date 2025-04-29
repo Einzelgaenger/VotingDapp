@@ -1,4 +1,4 @@
-// ✅ Final AdminPanel.jsx - Fix Remove Only for Creator + Correct SuperAdmin Search
+// ✅ Final AdminPanel.jsx - Only Creator Can Add/Remove SuperAdmin + Proper Search
 
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
@@ -217,17 +217,19 @@ export default function AdminPanel({ setPage }) {
                 <>
                     <h3>👑 SuperAdmin Management</h3>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <h4>➕ Add SuperAdmin</h4>
-                        <input
-                            type="text"
-                            placeholder="New SuperAdmin Address"
-                            value={addSuperAdminAddress}
-                            onChange={(e) => setAddSuperAdminAddress(e.target.value)}
-                            style={{ marginRight: '1rem' }}
-                        />
-                        <button onClick={() => handleTx('addSuperAdmin', addSuperAdminAddress)} disabled={loading}>Add</button>
-                    </div>
+                    {role === 'creator' && (
+                        <div style={{ marginBottom: '1rem' }}>
+                            <h4>➕ Add SuperAdmin</h4>
+                            <input
+                                type="text"
+                                placeholder="New SuperAdmin Address"
+                                value={addSuperAdminAddress}
+                                onChange={(e) => setAddSuperAdminAddress(e.target.value)}
+                                style={{ marginRight: '1rem' }}
+                            />
+                            <button onClick={() => handleTx('addSuperAdmin', addSuperAdminAddress)} disabled={loading}>Add</button>
+                        </div>
+                    )}
 
                     <div style={{ marginBottom: '1rem' }}>
                         <input

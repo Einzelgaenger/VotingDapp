@@ -1,4 +1,4 @@
-// ✅ Updated ConnectWalletButton.jsx - Professional Wallet Display
+// ✅ Final ConnectWalletButton.jsx - No useTheme, Clean and Professional
 
 import { useWallet } from '../contexts/WalletContext';
 

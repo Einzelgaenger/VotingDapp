@@ -8,6 +8,8 @@ import RoomDetail from './components/RoomDetail';
 import RoomInteract from './components/RoomInteract';
 import RoomMember from './components/RoomMember';
 import AdminPanel from './components/AdminPanel';
+import HomePage from './components/HomePage';
+
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -72,6 +74,11 @@ function App() {
       {page === 'adminpanel' && (
         <AdminPanel setPage={setPage} />
       )}
+
+      {page === 'home' && (
+        <HomePage setPage={setPage} />
+      )}
+
     </>
   );
 }
