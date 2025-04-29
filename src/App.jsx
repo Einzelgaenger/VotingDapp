@@ -15,7 +15,8 @@ function App() {
   const [page, setPage] = useState('landing');
   const [activeRoomAddress, setActiveRoomAddress] = useState(null);
   const [returnPage, setReturnPage] = useState('roomdetail');
-  const [sidebarOpen, setSidebarOpen] = useState(false); // ✅ ADD THIS
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false); // ✅ NEW
 
   const showNavbar = page !== 'landing';
 
@@ -24,12 +25,20 @@ function App() {
       {showNavbar && (
         <SidebarNavbar
           setPage={setPage}
-          sidebarOpen={sidebarOpen}       // ✅ PASS STATE
+          sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
+          collapsed={collapsed} // ✅ PASS
+          setCollapsed={setCollapsed}
         />
       )}
 
-      <main className={showNavbar ? 'pl-0 md:pl-64 transition-all duration-300' : ''}>
+      <main
+        className={
+          showNavbar
+            ? `transition-all duration-300 ${collapsed ? 'md:pl-20' : 'md:pl-64'}`
+            : ''
+        }
+      >
         {page === 'landing' && <LandingPage setPage={setPage} />}
         {page === 'create' && <CreateRoom setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}
         {page === 'myrooms' && <MyRooms setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}
