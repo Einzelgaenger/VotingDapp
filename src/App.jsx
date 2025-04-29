@@ -1,26 +1,33 @@
 import { useState } from 'react';
 import Navbar from './components/Navbar';
+import LandingPage from './components/LandingPage';
 import CreateRoom from './components/CreateRoom';
 import MyRooms from './components/MyRooms';
 import JoinRoom from './components/JoinRoom';
 import RoomDetail from './components/RoomDetail';
 import RoomInteract from './components/RoomInteract';
 import RoomMember from './components/RoomMember';
-import AdminPanel from './components/AdminPanel'; // ✅ import AdminPanel
+import AdminPanel from './components/AdminPanel';
 
 function App() {
-  const [page, setPage] = useState('create');
+  const [page, setPage] = useState('landing');
   const [activeRoomAddress, setActiveRoomAddress] = useState(null);
   const [returnPage, setReturnPage] = useState('roomdetail');
 
+  const showNavbar = page !== 'landing'; // ✅ kalau bukan landing, baru tampil Navbar
+
   return (
     <>
-      <Navbar setPage={setPage} />
+      {showNavbar && <Navbar setPage={setPage} />} {/* ✅ hanya muncul kalau bukan di landing */}
+
+      {page === 'landing' && (
+        <LandingPage setPage={setPage} />
+      )}
 
       {page === 'create' && (
         <CreateRoom
-          setPage={setPage} // ✅ tambahan props ke CreateRoom
-          setActiveRoomAddress={setActiveRoomAddress} // ✅ tambahan props
+          setPage={setPage}
+          setActiveRoomAddress={setActiveRoomAddress}
         />
       )}
 

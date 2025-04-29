@@ -1,5 +1,6 @@
 // ✅ src/components/LandingPage.jsx
 
+import { useEffect } from 'react';
 import { useWallet } from '../contexts/WalletContext';
 
 export default function LandingPage({ setPage }) {
@@ -7,10 +8,15 @@ export default function LandingPage({ setPage }) {
 
     const handleConnect = async () => {
         await connectWallet();
-        if (account) {
-            setPage('create'); // Setelah connect, langsung masuk ke halaman Create
-        }
+        // Jangan langsung cek account di sini
+        // Tunggu perubahan account lewat useEffect
     };
+
+    useEffect(() => {
+        if (account) {
+            setPage('create'); // 🔥 Kalau account terdeteksi, langsung ke Create
+        }
+    }, [account, setPage]);
 
     return (
         <div style={{
@@ -33,13 +39,7 @@ export default function LandingPage({ setPage }) {
                 </button>
             ) : (
                 <div style={{ marginTop: '2rem' }}>
-                    <p>Wallet Connected!</p>
-                    <button
-                        onClick={() => setPage('create')}
-                        style={{ marginTop: '1rem', padding: '0.8rem 1.5rem' }}
-                    >
-                        Continue to Create Room
-                    </button>
+                    <p>Wallet Connected! Redirecting...</p>
                 </div>
             )}
         </div>
