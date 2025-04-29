@@ -1,3 +1,5 @@
+// ✅ RoomMember.jsx - Auto Refresh Faster When Voting Active
+
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
@@ -10,13 +12,20 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
     const [loading, setLoading] = useState(true);
     const [roomAdmin, setRoomAdmin] = useState('');
     const [superAdmin, setSuperAdmin] = useState('');
+    const [isVotingActive, setIsVotingActive] = useState(false); // 🔥 New
     const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
-        if (activeRoomAddress) {
+        if (!activeRoomAddress) return;
+
+        fetchMembers();
+
+        const interval = setInterval(() => {
             fetchMembers();
-        }
-    }, [activeRoomAddress]);
+        }, isVotingActive ? 5000 : 15000); // 🔄 Dynamic refresh
+
+        return () => clearInterval(interval);
+    }, [activeRoomAddress, isVotingActive]); // 🔥 add isVotingActive
 
     const fetchMembers = async () => {
         try {
@@ -29,13 +38,17 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
                 voterAddresses,
                 voterNames,
                 fetchedRoomAdmin,
-                fetchedSuperAdmin
+                fetchedSuperAdmin,
+                votingStarted,
+                votingEnded
             ] = await Promise.all([
                 contract.getCandidates(),
                 contract.getVoterDetails().then(res => res[0]),
                 contract.getVoterDetails().then(res => res[1]),
                 contract.roomAdmin(),
-                contract.superAdmin()
+                contract.superAdmin(),
+                contract.votingStarted(),
+                contract.votingEnded()
             ]);
 
             setRoomAdmin(fetchedRoomAdmin.toLowerCase());
@@ -57,15 +70,22 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
                 return a.name.localeCompare(b.name);
             });
 
-            setCandidates(sortedCandidates);
-            // setVoters(votersExpanded);
             const sortedVoters = votersExpanded.sort((a, b) => {
                 if (a.hasVoted !== b.hasVoted) {
-                    return a.hasVoted ? -1 : 1; // ✅ yang sudah vote di atas
+                    return a.hasVoted ? -1 : 1;
                 }
-                return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); // 📚 kalau sama, urut nama A-Z
+                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
             });
+
+            setCandidates(sortedCandidates);
             setVoters(sortedVoters);
+
+            // 🔥 Update voting status
+            if (votingStarted && !votingEnded) {
+                setIsVotingActive(true);
+            } else {
+                setIsVotingActive(false);
+            }
 
         } catch (err) {
             console.error('Failed to load members:', err);

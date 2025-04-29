@@ -18,23 +18,27 @@ export default function AdminPanel({ setPage }) {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (account) {
+        if (!account) return;
+
+        fetchRooms();
+        fetchSuperAdmins();
+
+        const interval = setInterval(() => {
             fetchRooms();
             fetchSuperAdmins();
-        }
+        }, 15000); // 🔄 Refresh setiap 15 detik
+
+        return () => clearInterval(interval);
     }, [account]);
 
     const fetchRooms = async () => {
         try {
-            setLoading(true);
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
             const allRooms = await factory.getRooms();
-            setRooms(allRooms.reverse()); // 🔥 Urutkan dari newest
+            setRooms(allRooms.reverse()); // 🔥 Urut newest first
         } catch (err) {
             console.error('Failed to fetch rooms:', err);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -74,7 +78,6 @@ export default function AdminPanel({ setPage }) {
             alert('Please enter an address.');
             return;
         }
-
         const lowerAddress = addSuperAdminAddress.toLowerCase();
         const isAlreadySuperAdmin = superAdmins.some(addr => addr.toLowerCase() === lowerAddress);
 
@@ -91,7 +94,6 @@ export default function AdminPanel({ setPage }) {
             alert('Please enter an address.');
             return;
         }
-
         const lowerAddress = removeSuperAdminAddress.toLowerCase();
         const isSuperAdmin = superAdmins.some(addr => addr.toLowerCase() === lowerAddress);
 

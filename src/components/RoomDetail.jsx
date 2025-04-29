@@ -1,3 +1,5 @@
+// ✅ RoomDetail.jsx - Auto Refresh Faster When Voting Active
+
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
@@ -7,12 +9,19 @@ export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }
     const { account } = useWallet();
     const [roomInfo, setRoomInfo] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isVotingActive, setIsVotingActive] = useState(false); // 🔥 New
 
     useEffect(() => {
-        if (activeRoomAddress) {
+        if (!activeRoomAddress) return;
+
+        fetchRoomDetail();
+
+        const interval = setInterval(() => {
             fetchRoomDetail();
-        }
-    }, [activeRoomAddress]);
+        }, isVotingActive ? 5000 : 15000); // 🔄 Dynamic refresh
+
+        return () => clearInterval(interval);
+    }, [activeRoomAddress, isVotingActive]); // 🔥 add isVotingActive
 
     const fetchRoomDetail = async () => {
         try {
@@ -59,6 +68,14 @@ export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }
                 maxVoters: maxVoters.toString(),
                 factory
             });
+
+            // 🔥 Update voting status
+            if (votingStarted && !votingEnded) {
+                setIsVotingActive(true);
+            } else {
+                setIsVotingActive(false);
+            }
+
         } catch (error) {
             console.error('Error fetching room detail:', error);
         } finally {
@@ -93,7 +110,9 @@ export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }
                 <button onClick={() => {
                     setReturnPage('roomdetail');
                     setPage('roommembers');
-                }}>View Members</button>
+                }}>
+                    View Members
+                </button>
             </div>
         </div>
     );

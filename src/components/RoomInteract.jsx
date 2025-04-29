@@ -1,3 +1,5 @@
+// ✅ RoomInteract.jsx - Auto Refresh with Dynamic Interval (5s if Voting Active)
+
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
@@ -14,10 +16,19 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const [removeCandidateId, setRemoveCandidateId] = useState('');
     const [newAdminAddress, setNewAdminAddress] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const [isVotingActive, setIsVotingActive] = useState(false); // 🔥 new
 
     useEffect(() => {
-        if (activeRoomAddress) fetchRoomDetail();
-    }, [activeRoomAddress]);
+        if (!activeRoomAddress) return;
+
+        fetchRoomDetail(); // first fetch
+
+        const interval = setInterval(() => {
+            fetchRoomDetail();
+        }, isVotingActive ? 5000 : 15000); // 🔥 auto adjust interval
+
+        return () => clearInterval(interval);
+    }, [activeRoomAddress, isVotingActive]); // 🔥 dependency update
 
     const fetchRoomDetail = async () => {
         try {
@@ -58,6 +69,14 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 votingEnded,
                 maxVoters: maxVoters.toString()
             });
+
+            // 🔥 update isVotingActive state
+            if (votingStarted && !votingEnded) {
+                setIsVotingActive(true);
+            } else {
+                setIsVotingActive(false);
+            }
+
         } catch (err) {
             console.error('Error fetching room detail:', err);
         } finally {
@@ -225,8 +244,12 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 <button onClick={() => {
                     setReturnPage('roominteract');
                     setPage('roommembers');
-                }}>View Room Members</button>
-                <button onClick={() => setPage('myrooms')} style={{ marginLeft: '1rem' }}>Back to My Rooms</button>
+                }}>
+                    View Room Members
+                </button>
+                <button onClick={() => setPage('myrooms')} style={{ marginLeft: '1rem' }}>
+                    Back to My Rooms
+                </button>
             </div>
         </div>
     );

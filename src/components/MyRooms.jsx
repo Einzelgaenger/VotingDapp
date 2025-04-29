@@ -1,10 +1,11 @@
+// ✅ MyRooms.jsx - Auto Refresh + Filter Deactivated Rooms
+
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
-// ✅ RoomFactory address (clone-based)
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
 export default function MyRooms({ setPage, setActiveRoomAddress }) {
@@ -13,7 +14,15 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (account) fetchRoomsFast();
+        if (!account) return;
+
+        fetchRoomsFast();
+
+        const interval = setInterval(() => {
+            fetchRoomsFast();
+        }, 15000);
+
+        return () => clearInterval(interval);
     }, [account]);
 
     const fetchRoomsFast = async () => {
@@ -23,7 +32,6 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
 
             const allRooms = await factory.getRooms();
-
             const myRooms = allRooms.filter(r => r.createdBy.toLowerCase() === account.toLowerCase());
 
             const formatted = myRooms.map((room, index) => ({
@@ -32,12 +40,12 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                 roomName: room.roomName,
                 description: '',
                 votersCount: null,
-                candidatesCount: null
+                candidatesCount: null,
+                isActive: true, // ➡️ default aktif, akan diupdate nanti
             }));
 
             setRooms(formatted);
 
-            // Lazy load room detail per room
             formatted.forEach((room, i) => fetchRoomDetail(room.address, i));
         } catch (err) {
             console.error('Error fetching my rooms:', err);
@@ -51,10 +59,11 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
 
-            const [description, voters, candidates] = await Promise.all([
+            const [description, voters, candidates, isActive] = await Promise.all([
                 roomContract.description(),
                 roomContract.getVoters(),
                 roomContract.getCandidates(),
+                roomContract.isActive(),
             ]);
 
             setRooms(prev => {
@@ -63,7 +72,8 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                     ...updated[index],
                     description,
                     votersCount: voters.length,
-                    candidatesCount: candidates.length
+                    candidatesCount: candidates.length,
+                    isActive,
                 };
                 return updated;
             });
@@ -110,23 +120,25 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
         <div style={{ padding: '2rem' }}>
             <h2>My Voting Rooms</h2>
 
-            {rooms.length === 0 ? (
-                <p>No rooms created yet.</p>
+            {rooms.filter(r => r.isActive).length === 0 ? (
+                <p>No active rooms found.</p>
             ) : (
-                rooms.map((room, index) => (
-                    <div key={index} style={{ border: '1px solid #aaa', padding: '1rem', marginBottom: '1rem' }}>
-                        <strong>Room Name:</strong> {room.roomName} <br />
-                        <strong>Room Address:</strong> {room.address} <br />
-                        <strong>Description:</strong> {room.description || 'Loading...'} <br />
-                        <strong>Voters:</strong> {room.votersCount !== null ? room.votersCount : '...'} <br />
-                        <strong>Candidates:</strong> {room.candidatesCount !== null ? room.candidatesCount : '...'} <br />
+                rooms
+                    .filter(r => r.isActive) // 🔥 filter aktif saja
+                    .map((room, index) => (
+                        <div key={index} style={{ border: '1px solid #aaa', padding: '1rem', marginBottom: '1rem' }}>
+                            <strong>Room Name:</strong> {room.roomName} <br />
+                            <strong>Room Address:</strong> {room.address} <br />
+                            <strong>Description:</strong> {room.description || 'Loading...'} <br />
+                            <strong>Voters:</strong> {room.votersCount !== null ? room.votersCount : '...'} <br />
+                            <strong>Candidates:</strong> {room.candidatesCount !== null ? room.candidatesCount : '...'} <br />
 
-                        <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
-                            <button onClick={() => handleSeeDetails(room.address)}>See Details</button>
-                            <button onClick={() => handleJoinRoom(room.address)}>Join Room</button>
+                            <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                                <button onClick={() => handleSeeDetails(room.address)}>See Details</button>
+                                <button onClick={() => handleJoinRoom(room.address)}>Join Room</button>
+                            </div>
                         </div>
-                    </div>
-                ))
+                    ))
             )}
         </div>
     );
