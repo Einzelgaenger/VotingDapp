@@ -13,34 +13,26 @@ export default function LandingPage({ setPage }) {
     };
 
     return (
-        <div style={{ backgroundColor: '#F9FAFB', color: '#111827', minHeight: '100vh', padding: '2rem' }}>
+        <div className="bg-white text-gray-800 font-sans">
             {/* Hero Section */}
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                marginBottom: '4rem'
-            }}>
-                <h1 style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-                    Welcome to Voting DApp
+            <div className="max-w-6xl mx-auto px-6 pt-24 pb-32 text-center">
+                <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+                    We create <span className="text-orange-500">solutions</span> for your voting
                 </h1>
-                <p style={{ fontSize: '1.25rem', maxWidth: '600px', marginBottom: '2rem' }}>
-                    Securely create, join, and manage decentralized voting rooms with ease.
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+                    Our decentralized system helps you launch secure, fast, and transparent voting rooms on the blockchain.
                 </p>
-
                 {!account ? (
                     <button
                         onClick={handleConnect}
-                        style={primaryButton}
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition"
                     >
                         Connect Wallet
                     </button>
                 ) : (
                     <button
                         onClick={() => setPage('home')}
-                        style={primaryButton}
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition"
                     >
                         Go to Dashboard
                     </button>
@@ -52,15 +44,3 @@ export default function LandingPage({ setPage }) {
         </div>
     );
 }
-
-const primaryButton = {
-    padding: '1rem 2rem',
-    backgroundColor: '#4F46E5',
-    color: 'white',
-    fontSize: '1.1rem',
-    fontWeight: 'bold',
-    border: 'none',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-};
