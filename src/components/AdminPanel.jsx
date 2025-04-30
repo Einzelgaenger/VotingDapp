@@ -1,10 +1,17 @@
-// ✅ AdminPanel.jsx - FIXED for ethers v6 + Show room info correctly
+// ✅ AdminPanel.jsx - Clean UI + Valid Heroicons + Manual Refresh
 
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 import VotingRoomAbi from '../abis/VotingRoom.json';
+import {
+    ClipboardDocumentListIcon,
+    UserGroupIcon,
+    Cog6ToothIcon,
+    ArrowPathIcon,
+    ExclamationTriangleIcon
+} from "@heroicons/react/24/outline";
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 const ROOMS_PER_PAGE = 10;
@@ -25,11 +32,6 @@ export default function AdminPanel({ setPage }) {
         if (!account) return;
         fetchRooms();
         fetchSuperAdmins();
-        const interval = setInterval(() => {
-            fetchRooms();
-            fetchSuperAdmins();
-        }, 15000);
-        return () => clearInterval(interval);
     }, [account]);
 
     const fetchRooms = async () => {
@@ -41,27 +43,18 @@ export default function AdminPanel({ setPage }) {
 
             const roomDetails = await Promise.all(
                 allRooms.map(async (room) => {
-                    const roomAddress = room.roomAddress;
-                    const roomName = room.roomName;
-                    const description = room.description;
-                    const createdBy = room.createdBy;
-
+                    const { roomAddress, roomName, description, createdBy } = room;
                     try {
                         const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
                         const isActive = await roomContract.isActive();
                         return { roomAddress, roomName, description, createdBy, isActive };
                     } catch {
-                        // fallback: tampilkan room meski isActive gagal
                         return { roomAddress, roomName, description, createdBy, isActive: true };
                     }
                 })
             );
 
-
-            const activeRooms = roomDetails
-                .filter((r) => r.isActive && !deleted.includes(r.roomAddress))
-                .reverse();
-
+            const activeRooms = roomDetails.filter(r => r.isActive && !deleted.includes(r.roomAddress)).reverse();
             setRooms(activeRooms);
             setCurrentPage(1);
         } catch (err) {
@@ -139,25 +132,14 @@ export default function AdminPanel({ setPage }) {
     );
 
     const filteredSuperAdmins = superAdmins
-        .map((addr, idx) => ({
-            address: addr,
-            isCreator: idx === 0,
-        }))
+        .map((addr, idx) => ({ address: addr, isCreator: idx === 0 }))
         .filter(({ address }) => address.toLowerCase().includes(searchAdmin.toLowerCase()));
 
     const totalPages = Math.ceil(filteredRooms.length / ROOMS_PER_PAGE);
-    const paginatedRooms = filteredRooms.slice(
-        (currentPage - 1) * ROOMS_PER_PAGE,
-        currentPage * ROOMS_PER_PAGE
-    );
+    const paginatedRooms = filteredRooms.slice((currentPage - 1) * ROOMS_PER_PAGE, currentPage * ROOMS_PER_PAGE);
 
-    const handlePrev = () => {
-        if (currentPage > 1) setCurrentPage(currentPage - 1);
-    };
-
-    const handleNext = () => {
-        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-    };
+    const handlePrev = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+    const handleNext = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
 
     const handleHardReset = async () => {
         if (!window.confirm('⚠️ Are you sure you want to Hard Reset?')) return;
@@ -166,42 +148,70 @@ export default function AdminPanel({ setPage }) {
     };
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <h2>🛠️ Admin Panel</h2>
+        <div className="px-6 py-10 max-w-5xl mx-auto">
+            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <ClipboardDocumentListIcon className="w-6 h-6 text-indigo-600" />
+                Admin Panel
+            </h1>
 
-            <div style={{ marginBottom: '1rem' }}>
-                <button onClick={() => setActiveTab('room')} disabled={activeTab === 'room'}>Room Management</button>
-                <button onClick={() => setActiveTab('admin')} disabled={activeTab === 'admin'} style={{ marginLeft: '1rem' }}>SuperAdmin Management</button>
+            <div className="flex flex-wrap gap-4 mb-6">
+                <button className={`px-4 py-2 rounded ${activeTab === 'room' ? 'bg-indigo-500 text-white' : 'bg-gray-100'}`} onClick={() => setActiveTab('room')}>
+                    Room Management
+                </button>
+                <button className={`px-4 py-2 rounded ${activeTab === 'admin' ? 'bg-indigo-500 text-white' : 'bg-gray-100'}`} onClick={() => setActiveTab('admin')}>
+                    SuperAdmin Management
+                </button>
                 {role === 'creator' && (
-                    <button onClick={() => setActiveTab('factory')} disabled={activeTab === 'factory'} style={{ marginLeft: '1rem' }}>Factory Management</button>
+                    <button className={`px-4 py-2 rounded ${activeTab === 'factory' ? 'bg-indigo-500 text-white' : 'bg-gray-100'}`} onClick={() => setActiveTab('factory')}>
+                        Factory Management
+                    </button>
                 )}
+                <button
+                    onClick={async () => {
+                        setLoading(true);
+                        await Promise.all([fetchRooms(), fetchSuperAdmins()]);
+                        setLoading(false);
+                    }}
+                    className="ml-auto flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ArrowPathIcon className="animate-spin w-5 h-5" />
+                    ) : (
+                        <>
+                            <ArrowPathIcon className="w-5 h-5" />
+                            Refresh
+                        </>
+                    )}
+                </button>
             </div>
 
             {activeTab === 'room' && (
                 <>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <input
-                            type="text"
-                            placeholder="Search by Name, Address, Created By"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ padding: '0.5rem', width: '300px' }}
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search by Name, Address, Created By"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="mb-4 w-full px-4 py-2 border rounded"
+                    />
 
-                    <h3>📋 Rooms ({filteredRooms.length})</h3>
+                    <h2 className="font-semibold mb-2 flex items-center gap-2">
+                        <ClipboardDocumentListIcon className="w-5 h-5" />
+                        Rooms ({filteredRooms.length})
+                    </h2>
 
                     {paginatedRooms.length === 0 ? (
                         <p>No rooms found.</p>
                     ) : (
                         paginatedRooms.map((room, idx) => (
-                            <div key={idx} style={{ border: '1px solid gray', padding: '1rem', marginBottom: '1rem' }}>
+                            <div key={idx} className="border rounded p-4 mb-4 shadow-sm">
                                 <div><strong>Name:</strong> {room.roomName}</div>
                                 <div><strong>Address:</strong> {room.roomAddress}</div>
                                 <div><strong>Created by:</strong> {room.createdBy}</div>
                                 <button
                                     onClick={() => handleDeactivateAndRemove(room.roomAddress)}
-                                    style={{ marginTop: '0.5rem', backgroundColor: 'red', color: 'white' }}
+                                    className="mt-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                                     disabled={loading}
                                 >
                                     Deactivate and Remove Room
@@ -210,91 +220,91 @@ export default function AdminPanel({ setPage }) {
                         ))
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
-                        <button onClick={handlePrev} disabled={currentPage === 1}>Prev</button>
+                    <div className="flex justify-center items-center gap-4 mt-4">
+                        <button onClick={handlePrev} disabled={currentPage === 1} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Prev</button>
                         <span>Page {currentPage} of {totalPages}</span>
-                        <button onClick={handleNext} disabled={currentPage === totalPages}>Next</button>
+                        <button onClick={handleNext} disabled={currentPage === totalPages} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Next</button>
                     </div>
                 </>
             )}
 
             {activeTab === 'admin' && (
                 <>
-                    <h3>👑 SuperAdmin Management</h3>
+                    <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                        <UserGroupIcon className="w-5 h-5" />
+                        SuperAdmin Management
+                    </h2>
 
                     {role === 'creator' && (
-                        <div style={{ marginBottom: '1rem' }}>
-                            <h4>➕ Add SuperAdmin</h4>
+                        <div className="mb-4 flex gap-2">
                             <input
                                 type="text"
                                 placeholder="New SuperAdmin Address"
                                 value={addSuperAdminAddress}
                                 onChange={(e) => setAddSuperAdminAddress(e.target.value)}
-                                style={{ marginRight: '1rem' }}
+                                className="flex-1 px-4 py-2 border rounded"
                             />
-                            <button onClick={() => handleTx('addSuperAdmin', addSuperAdminAddress)} disabled={loading}>Add</button>
+                            <button onClick={() => handleTx('addSuperAdmin', addSuperAdminAddress)} disabled={loading} className="bg-indigo-500 text-white px-4 rounded">
+                                Add
+                            </button>
                         </div>
                     )}
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <input
-                            type="text"
-                            placeholder="Search SuperAdmin Address"
-                            value={searchAdmin}
-                            onChange={(e) => setSearchAdmin(e.target.value)}
-                            style={{ padding: '0.5rem', width: '300px' }}
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search SuperAdmin Address"
+                        value={searchAdmin}
+                        onChange={(e) => setSearchAdmin(e.target.value)}
+                        className="mb-4 w-full px-4 py-2 border rounded"
+                    />
 
-                    {filteredSuperAdmins.length === 0 ? (
-                        <p>No superadmins found.</p>
-                    ) : (
-                        <ul>
-                            {filteredSuperAdmins.map(({ address, isCreator }, idx) => (
-                                <li key={idx} style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    {address} {isCreator && <strong>(Creator)</strong>}
-                                    {role === 'creator' && !isCreator && (
-                                        <button
-                                            onClick={() => handleTx('removeSuperAdmin', address)}
-                                            style={{ backgroundColor: 'red', color: 'white' }}
-                                            disabled={loading}
-                                        >
-                                            Remove
-                                        </button>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    <ul>
+                        {filteredSuperAdmins.map(({ address, isCreator }, idx) => (
+                            <li key={idx} className="mb-2 flex items-center justify-between">
+                                <span>{address} {isCreator && <strong>(Creator)</strong>}</span>
+                                {role === 'creator' && !isCreator && (
+                                    <button
+                                        onClick={() => handleTx('removeSuperAdmin', address)}
+                                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                                        disabled={loading}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
                 </>
             )}
 
             {activeTab === 'factory' && role === 'creator' && (
                 <>
-                    <h3>🏭 Factory Management</h3>
+                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <Cog6ToothIcon className="w-5 h-5" />
+                        Factory Management
+                    </h2>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <h4>🔄 Transfer Creator</h4>
+                    <div className="mb-4 flex gap-2">
                         <input
                             type="text"
                             placeholder="New Creator Address"
                             value={newCreator}
                             onChange={(e) => setNewCreator(e.target.value)}
-                            style={{ marginRight: '1rem' }}
+                            className="flex-1 px-4 py-2 border rounded"
                         />
-                        <button onClick={() => handleTx('transferCreator', newCreator)} disabled={loading}>Transfer</button>
-                    </div>
-
-                    <div style={{ marginBottom: '1rem' }}>
-                        <h4>💥 Hard Reset Factory</h4>
-                        <button
-                            onClick={handleHardReset}
-                            style={{ backgroundColor: 'red', color: 'white' }}
-                            disabled={loading}
-                        >
-                            Hard Reset
+                        <button onClick={() => handleTx('transferCreator', newCreator)} disabled={loading} className="bg-indigo-500 text-white px-4 rounded">
+                            Transfer
                         </button>
                     </div>
+
+                    <button
+                        onClick={handleHardReset}
+                        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-2"
+                        disabled={loading}
+                    >
+                        <ExclamationTriangleIcon className="w-5 h-5" />
+                        Hard Reset Factory
+                    </button>
                 </>
             )}
         </div>
