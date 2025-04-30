@@ -41,33 +41,22 @@ export default function AdminPanel({ setPage }) {
 
             const roomDetails = await Promise.all(
                 allRooms.map(async (room) => {
-                    try {
-                        const roomAddress = room.roomAddress;
-                        const roomName = room.roomName;
-                        const description = room.description;
-                        const createdBy = room.createdBy;
+                    const roomAddress = room.roomAddress;
+                    const roomName = room.roomName;
+                    const description = room.description;
+                    const createdBy = room.createdBy;
 
+                    try {
                         const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
                         const isActive = await roomContract.isActive();
-
-                        return {
-                            roomAddress,
-                            roomName,
-                            description,
-                            createdBy,
-                            isActive,
-                        };
+                        return { roomAddress, roomName, description, createdBy, isActive };
                     } catch {
-                        return {
-                            roomAddress: room.roomAddress,
-                            roomName: room.roomName,
-                            description: room.description,
-                            createdBy: room.createdBy,
-                            isActive: false,
-                        };
+                        // fallback: tampilkan room meski isActive gagal
+                        return { roomAddress, roomName, description, createdBy, isActive: true };
                     }
                 })
             );
+
 
             const activeRooms = roomDetails
                 .filter((r) => r.isActive && !deleted.includes(r.roomAddress))
