@@ -66,36 +66,21 @@ export default function SidebarNavbar({
                             className="absolute top-0 -right-5 h-full flex items-center cursor-pointer z-50"
                         >
                             {/* Triangle with visible border & sharp tip */}
-                            <div className="relative w-[20px] h-[72px]">
-                                <svg
-                                    width="20"
-                                    height="72"
-                                    viewBox="0 0 20 72"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="hover:scale-105 transition"
-                                    style={{ display: 'block' }}
-                                >
-                                    {/* FILTER SHADOW */}
+                            <div className="relative w-[20px] h-[72px] group">
+                                <svg width="20" height="72" viewBox="0 0 20 72" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
                                     <defs>
                                         <filter id="triangleShadow" x="-50%" y="-50%" width="200%" height="200%">
-                                            <feDropShadow dx="1" dy="0" stdDeviation="1" flood-color="#cbd5e1" flood-opacity="0.5" />
+                                            <feDropShadow dx="1" dy="0" stdDeviation="1" floodColor="#cbd5e1" floodOpacity="0.5" />
                                         </filter>
                                     </defs>
 
-                                    {/* Segitiga putih */}
-                                    <path d="M0,0 L20,36 L0,72 Z" fill="white" />
+                                    {/* Segitiga: ubah fill saat hover pakai class tailwind group-hover */}
+                                    <path d="M0,0 L20,36 L0,72 Z" className="fill-white group-hover:fill-indigo-100 transition-colors duration-300" />
 
-                                    {/* Garis sisi miring dengan shadow */}
-                                    <path
-                                        d="M0,0 L20,36 L0,72"
-                                        fill="none"
-                                        stroke="#e5e7eb"
-                                        strokeWidth="1"
-                                        filter="url(#triangleShadow)"
-                                    />
+                                    <path d="M0,0 L20,36 L0,72" fill="none" stroke="#e5e7eb" strokeWidth="1" filter="url(#triangleShadow)" />
                                 </svg>
-
                             </div>
+
 
 
 

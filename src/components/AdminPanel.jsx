@@ -12,6 +12,7 @@ import {
     ArrowPathIcon,
     ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
+import { Settings2 } from 'lucide-react';
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 const ROOMS_PER_PAGE = 10;
@@ -149,8 +150,8 @@ export default function AdminPanel({ setPage }) {
 
     return (
         <div className="px-6 py-10 max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <ClipboardDocumentListIcon className="w-6 h-6 text-indigo-600" />
+            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-800">
+                <Settings2 className="w-6 h-6 text-indigo-500" />
                 Admin Panel
             </h1>
 
