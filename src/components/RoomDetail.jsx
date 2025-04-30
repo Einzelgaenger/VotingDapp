@@ -1,7 +1,5 @@
-// ✅ RoomDetail.jsx - Auto Refresh Faster When Voting Active
-
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider, Contract } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
@@ -9,7 +7,7 @@ export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }
     const { account } = useWallet();
     const [roomInfo, setRoomInfo] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isVotingActive, setIsVotingActive] = useState(false); // 🔥 New
+    const [isVotingActive, setIsVotingActive] = useState(false);
 
     useEffect(() => {
         if (!activeRoomAddress) return;
@@ -18,16 +16,16 @@ export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }
 
         const interval = setInterval(() => {
             fetchRoomDetail();
-        }, isVotingActive ? 5000 : 15000); // 🔄 Dynamic refresh
+        }, isVotingActive ? 5000 : 15000);
 
         return () => clearInterval(interval);
-    }, [activeRoomAddress, isVotingActive]); // 🔥 add isVotingActive
+    }, [activeRoomAddress, isVotingActive]);
 
     const fetchRoomDetail = async () => {
         try {
             setLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const contract = new Contract(activeRoomAddress, VotingRoomAbi, provider);
 
             const [
                 roomName,
@@ -69,13 +67,7 @@ export default function RoomDetail({ activeRoomAddress, setPage, setReturnPage }
                 factory
             });
 
-            // 🔥 Update voting status
-            if (votingStarted && !votingEnded) {
-                setIsVotingActive(true);
-            } else {
-                setIsVotingActive(false);
-            }
-
+            setIsVotingActive(votingStarted && !votingEnded);
         } catch (error) {
             console.error('Error fetching room detail:', error);
         } finally {

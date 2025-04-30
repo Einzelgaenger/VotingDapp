@@ -1,7 +1,5 @@
-// ✅ RoomMember.jsx - Auto Refresh Faster When Voting Active
-
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider, Contract } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
@@ -12,7 +10,7 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
     const [loading, setLoading] = useState(true);
     const [roomAdmin, setRoomAdmin] = useState('');
     const [superAdmin, setSuperAdmin] = useState('');
-    const [isVotingActive, setIsVotingActive] = useState(false); // 🔥 New
+    const [isVotingActive, setIsVotingActive] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
@@ -22,16 +20,16 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
 
         const interval = setInterval(() => {
             fetchMembers();
-        }, isVotingActive ? 5000 : 15000); // 🔄 Dynamic refresh
+        }, isVotingActive ? 5000 : 15000);
 
         return () => clearInterval(interval);
-    }, [activeRoomAddress, isVotingActive]); // 🔥 add isVotingActive
+    }, [activeRoomAddress, isVotingActive]);
 
     const fetchMembers = async () => {
         try {
             setLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const contract = new Contract(activeRoomAddress, VotingRoomAbi, provider);
 
             const [
                 candidatesRaw,
@@ -79,14 +77,7 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
 
             setCandidates(sortedCandidates);
             setVoters(sortedVoters);
-
-            // 🔥 Update voting status
-            if (votingStarted && !votingEnded) {
-                setIsVotingActive(true);
-            } else {
-                setIsVotingActive(false);
-            }
-
+            setIsVotingActive(votingStarted && !votingEnded);
         } catch (err) {
             console.error('Failed to load members:', err);
         } finally {
@@ -102,9 +93,9 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
 
         try {
             setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
+            const provider = new BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new Contract(activeRoomAddress, VotingRoomAbi, signer);
 
             const tx = await contract.removeVoter(voterAddress);
             await tx.wait();

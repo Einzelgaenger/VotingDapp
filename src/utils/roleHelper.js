@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { Contract } from "ethers";
 import RoomFactoryAbi from "../abis/RoomFactory.json";
 import VotingRoomAbi from "../abis/VotingRoom.json";
 
@@ -10,7 +10,7 @@ export async function getUserRole(account, provider) {
     if (!account || !provider) return "user";
 
     try {
-        const roomFactory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
+        const roomFactory = new Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, await provider.getSigner());
 
         const currentCreator = await roomFactory.creator();
         if (account.toLowerCase() === currentCreator.toLowerCase()) {
@@ -33,5 +33,5 @@ export async function getUserRole(account, provider) {
 
 // 📦 Untuk mendapatkan instance VotingRoom clone
 export const getVotingRoomContract = (address, signerOrProvider) => {
-    return new ethers.Contract(address, VotingRoomAbi, signerOrProvider);
+    return new Contract(address, VotingRoomAbi, signerOrProvider);
 };

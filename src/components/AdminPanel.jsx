@@ -1,4 +1,4 @@
-// ✅ Final AdminPanel.jsx - Only Creator Can Add/Remove SuperAdmin + Proper Search
+// ✅ AdminPanel.jsx - FIXED for ethers v6 + Show room info correctly
 
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
@@ -34,7 +34,7 @@ export default function AdminPanel({ setPage }) {
 
     const fetchRooms = async () => {
         try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const provider = new ethers.BrowserProvider(window.ethereum);
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
             const allRooms = await factory.getRooms();
             const deleted = JSON.parse(localStorage.getItem('deletedRooms') || '[]');
@@ -42,17 +42,35 @@ export default function AdminPanel({ setPage }) {
             const roomDetails = await Promise.all(
                 allRooms.map(async (room) => {
                     try {
-                        const roomContract = new ethers.Contract(room.roomAddress, VotingRoomAbi, provider);
+                        const roomAddress = room.roomAddress;
+                        const roomName = room.roomName;
+                        const description = room.description;
+                        const createdBy = room.createdBy;
+
+                        const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
                         const isActive = await roomContract.isActive();
-                        return { ...room, isActive };
+
+                        return {
+                            roomAddress,
+                            roomName,
+                            description,
+                            createdBy,
+                            isActive,
+                        };
                     } catch {
-                        return { ...room, isActive: false };
+                        return {
+                            roomAddress: room.roomAddress,
+                            roomName: room.roomName,
+                            description: room.description,
+                            createdBy: room.createdBy,
+                            isActive: false,
+                        };
                     }
                 })
             );
 
             const activeRooms = roomDetails
-                .filter(r => r.isActive && !deleted.includes(r.roomAddress))
+                .filter((r) => r.isActive && !deleted.includes(r.roomAddress))
                 .reverse();
 
             setRooms(activeRooms);
@@ -64,7 +82,7 @@ export default function AdminPanel({ setPage }) {
 
     const fetchSuperAdmins = async () => {
         try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const provider = new ethers.BrowserProvider(window.ethereum);
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
             const admins = await factory.getSuperAdmins();
             setSuperAdmins(admins);
@@ -77,8 +95,8 @@ export default function AdminPanel({ setPage }) {
         if (!window.confirm('Deactivate and remove this room?')) return;
         try {
             setLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
             const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, signer);
             const isActive = await roomContract.isActive();
             if (isActive) {
@@ -103,8 +121,8 @@ export default function AdminPanel({ setPage }) {
     const handleTx = async (method, ...args) => {
         try {
             setLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
             const tx = await factory[method](...args);
             await tx.wait();
@@ -125,10 +143,10 @@ export default function AdminPanel({ setPage }) {
         setNewCreator('');
     };
 
-    const filteredRooms = rooms.filter(room =>
-        room.roomName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.roomAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredRooms = rooms.filter((room) =>
+        (room.roomName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (room.roomAddress?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (room.createdBy?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
 
     const filteredSuperAdmins = superAdmins
@@ -136,9 +154,7 @@ export default function AdminPanel({ setPage }) {
             address: addr,
             isCreator: idx === 0,
         }))
-        .filter(({ address }) =>
-            address.toLowerCase().includes(searchAdmin.toLowerCase())
-        );
+        .filter(({ address }) => address.toLowerCase().includes(searchAdmin.toLowerCase()));
 
     const totalPages = Math.ceil(filteredRooms.length / ROOMS_PER_PAGE);
     const paginatedRooms = filteredRooms.slice(

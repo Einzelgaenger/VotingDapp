@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider, Contract } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 
@@ -25,9 +25,9 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
             setTxHash(null);
             setNewRoomAddress(null);
 
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const roomFactory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
+            const provider = new BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const roomFactory = new Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
 
             const tx = await roomFactory.createRoom(roomName, description, maxVoters);
             const receipt = await tx.wait();
@@ -35,7 +35,14 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
             setTxHash(tx.hash);
             alert('Room created successfully!');
 
-            const event = receipt.events.find((e) => e.event === "RoomCreated");
+            const event = receipt.logs.map(log => {
+                try {
+                    return roomFactory.interface.parseLog(log);
+                } catch {
+                    return null;
+                }
+            }).find(e => e && e.name === "RoomCreated");
+
             if (event) {
                 const roomAddress = event.args.roomAddress;
                 setNewRoomAddress(roomAddress);

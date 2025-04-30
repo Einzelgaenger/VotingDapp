@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ethers } from 'ethers';
+import { Contract, isAddress } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
@@ -15,14 +15,14 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
         setLoading(true);
 
         try {
-            if (!ethers.utils.isAddress(roomAddress)) {
+            if (!isAddress(roomAddress)) {
                 setError('Invalid room address.');
                 setLoading(false);
                 return;
             }
 
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
+            const provider = new window.ethereum.__ethers__.BrowserProvider(window.ethereum);
+            const contract = new Contract(roomAddress, VotingRoomAbi, provider);
 
             const [roomAdmin, superAdmin, voterList] = await Promise.all([
                 contract.roomAdmin(),
@@ -35,7 +35,6 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
             const isVoter = voterList.map(addr => addr.toLowerCase()).includes(lowerAccount);
 
             if (isAdmin || isVoter) {
-                // 🔥 Authorized: langsung masuk ke RoomInteract
                 setActiveRoomAddress(roomAddress);
                 setPage('roominteract');
             } else {

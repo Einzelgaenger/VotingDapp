@@ -1,7 +1,6 @@
-// ✅ Updated MyRooms.jsx - Deactivate/Remove + Search + Pagination + Newest to Oldest
-
+// ✅ Updated for ethers@6.x
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider, Contract, isAddress } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 import VotingRoomAbi from '../abis/VotingRoom.json';
@@ -28,8 +27,8 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const fetchRoomsFast = async () => {
         try {
             setLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const factory = new Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
 
             const allRooms = await factory.getRooms();
             const myRooms = allRooms.filter(r => r.createdBy.toLowerCase() === account.toLowerCase());
@@ -45,7 +44,6 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             }));
 
             setRooms(formatted.reverse());
-
             formatted.forEach((room, i) => fetchRoomDetail(room.address, i));
         } catch (err) {
             console.error('Error fetching my rooms:', err);
@@ -56,8 +54,8 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
 
     const fetchRoomDetail = async (roomAddress, index) => {
         try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const roomContract = new Contract(roomAddress, VotingRoomAbi, provider);
 
             const [description, voters, candidates, isActive] = await Promise.all([
                 roomContract.description(),
@@ -89,8 +87,8 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
 
     const handleJoinRoom = async (roomAddress) => {
         try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = new ethers.Contract(roomAddress, VotingRoomAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const contract = new Contract(roomAddress, VotingRoomAbi, provider);
 
             const [roomAdmin, superAdmin, voters] = await Promise.all([
                 contract.roomAdmin(),
@@ -117,9 +115,9 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const handleDeactivateAndRemove = async (roomAddress) => {
         if (!window.confirm('Deactivate and remove this room?')) return;
         try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, signer);
+            const provider = new BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const roomContract = new Contract(roomAddress, VotingRoomAbi, signer);
             const isActive = await roomContract.isActive();
             if (isActive) {
                 const tx = await roomContract.deactivateRoom();

@@ -25,11 +25,13 @@ function App() {
       {showNavbar && (
         <SidebarNavbar
           setPage={setPage}
+          currentPage={page}          // ✅ Tambahkan ini
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
-          collapsed={collapsed} // ✅ PASS
-          setCollapsed={setCollapsed}
         />
+
       )}
 
       <main

@@ -1,5 +1,6 @@
+// WalletContext.jsx (untuk ethers@6)
 import { createContext, useContext, useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider } from 'ethers'; // ✅ ganti ini
 import { getUserRole } from '../utils/roleHelper';
 
 const WalletContext = createContext();
@@ -15,7 +16,7 @@ export function WalletProvider({ children }) {
 
     useEffect(() => {
         if (window.ethereum) {
-            const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
+            const ethProvider = new BrowserProvider(window.ethereum); // ✅ ganti
             setProvider(ethProvider);
 
             window.ethereum.on('accountsChanged', async ([newAccount]) => {
@@ -24,7 +25,6 @@ export function WalletProvider({ children }) {
                     const userRole = await getUserRole(newAccount, ethProvider);
                     setRole(userRole);
                 } else {
-                    // Wallet disconnected (e.g., via MetaMask)
                     setAccount(null);
                     setRole("guest");
                 }
@@ -39,7 +39,7 @@ export function WalletProvider({ children }) {
 
     const connectWallet = async () => {
         if (window.ethereum) {
-            const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
+            const ethProvider = new BrowserProvider(window.ethereum); // ✅ ganti
             setProvider(ethProvider);
 
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });

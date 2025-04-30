@@ -1,7 +1,5 @@
-// ✅ RoomInteract.jsx - Auto Refresh with Dynamic Interval (5s if Voting Active)
-
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider, Contract } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
@@ -16,25 +14,25 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const [removeCandidateId, setRemoveCandidateId] = useState('');
     const [newAdminAddress, setNewAdminAddress] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
-    const [isVotingActive, setIsVotingActive] = useState(false); // 🔥 new
+    const [isVotingActive, setIsVotingActive] = useState(false);
 
     useEffect(() => {
         if (!activeRoomAddress) return;
 
-        fetchRoomDetail(); // first fetch
+        fetchRoomDetail();
 
         const interval = setInterval(() => {
             fetchRoomDetail();
-        }, isVotingActive ? 5000 : 15000); // 🔥 auto adjust interval
+        }, isVotingActive ? 5000 : 15000);
 
         return () => clearInterval(interval);
-    }, [activeRoomAddress, isVotingActive]); // 🔥 dependency update
+    }, [activeRoomAddress, isVotingActive]);
 
     const fetchRoomDetail = async () => {
         try {
             setLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const contract = new Contract(activeRoomAddress, VotingRoomAbi, provider);
 
             const [
                 roomName,
@@ -70,13 +68,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 maxVoters: maxVoters.toString()
             });
 
-            // 🔥 update isVotingActive state
-            if (votingStarted && !votingEnded) {
-                setIsVotingActive(true);
-            } else {
-                setIsVotingActive(false);
-            }
-
+            setIsVotingActive(votingStarted && !votingEnded);
         } catch (err) {
             console.error('Error fetching room detail:', err);
         } finally {
@@ -91,9 +83,9 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const handleTx = async (method, ...args) => {
         try {
             setActionLoading(true);
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(activeRoomAddress, VotingRoomAbi, signer);
+            const provider = new BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new Contract(activeRoomAddress, VotingRoomAbi, signer);
 
             const tx = await contract[method](...args);
             await tx.wait();
