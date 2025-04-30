@@ -1,7 +1,7 @@
 import { useWallet } from '../contexts/WalletContext';
-import { Menu, X, ChevronLeft, Plus, ClipboardList, KeyRound, Settings2 } from 'lucide-react';
+import { Menu, X, Plus, ClipboardList, KeyRound, Settings2 } from 'lucide-react';
 import ConnectWalletButton from './ConnectWalletButton';
-import Logo from '../assets/securevote-logo.svg'; // 🔥 Ganti path sesuai lokasi logo SVG kamu
+import Logo from '../assets/SecureVote2.png';
 
 export default function SidebarNavbar({
     setPage,
@@ -41,27 +41,73 @@ export default function SidebarNavbar({
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
                 ${collapsed ? 'md:w-20' : 'md:w-64'} md:translate-x-0`}
             >
-                {/* Header with Logo */}
-                <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+                {/* Header */}
+                <div className="relative flex items-center justify-between px-4 py-4 border-b border-gray-200 h-[72px]">
                     <div
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => handleNavClick('home')}
                     >
-                        <img src={Logo} alt="SecureVote Logo" className="w-6 h-6" />
+                        <img
+                            src={Logo}
+                            alt="SecureVote Logo"
+                            className="w-10 h-10"
+                        />
                         {!collapsed && (
                             <h1 className="text-lg font-bold text-indigo-600 transition-all duration-300">
                                 SecureVote
                             </h1>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setCollapsed(!collapsed)} className="hidden md:block text-gray-600">
-                            <ChevronLeft className={`${collapsed ? 'rotate-180' : ''} transition-transform`} />
-                        </button>
-                        <button onClick={() => setSidebarOpen(false)} className="md:hidden text-gray-600">
-                            <X />
-                        </button>
+
+                    {/* Triangle Toggle Button */}
+                    <div className="hidden md:block">
+                        <div
+                            onClick={() => setCollapsed(!collapsed)}
+                            className="absolute top-0 -right-5 h-full flex items-center cursor-pointer z-50"
+                        >
+                            {/* Triangle with visible border & sharp tip */}
+                            <div className="relative w-[20px] h-[72px]">
+                                <svg
+                                    width="20"
+                                    height="72"
+                                    viewBox="0 0 20 72"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="hover:scale-105 transition"
+                                    style={{ display: 'block' }}
+                                >
+                                    {/* FILTER SHADOW */}
+                                    <defs>
+                                        <filter id="triangleShadow" x="-50%" y="-50%" width="200%" height="200%">
+                                            <feDropShadow dx="1" dy="0" stdDeviation="1" flood-color="#cbd5e1" flood-opacity="0.5" />
+                                        </filter>
+                                    </defs>
+
+                                    {/* Segitiga putih */}
+                                    <path d="M0,0 L20,36 L0,72 Z" fill="white" />
+
+                                    {/* Garis sisi miring dengan shadow */}
+                                    <path
+                                        d="M0,0 L20,36 L0,72"
+                                        fill="none"
+                                        stroke="#e5e7eb"
+                                        strokeWidth="1"
+                                        filter="url(#triangleShadow)"
+                                    />
+                                </svg>
+
+                            </div>
+
+
+
+                        </div>
                     </div>
+
+
+
+                    {/* Close for mobile */}
+                    <button onClick={() => setSidebarOpen(false)} className="md:hidden text-gray-600">
+                        <X />
+                    </button>
                 </div>
 
                 {/* Nav Items */}
@@ -84,7 +130,7 @@ export default function SidebarNavbar({
                 </nav>
             </div>
 
-            {/* Overlay for mobile */}
+            {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div
                     onClick={() => setSidebarOpen(false)}
@@ -92,7 +138,7 @@ export default function SidebarNavbar({
                 ></div>
             )}
 
-            {/* Wallet (desktop) */}
+            {/* Desktop Wallet */}
             <div className="hidden md:flex fixed top-0 right-0 p-4 z-40">
                 <ConnectWalletButton />
             </div>
