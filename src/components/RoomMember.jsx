@@ -58,7 +58,10 @@ export default function RoomMember({ activeRoomAddress, setPage, returnPage = 'r
                 })
             );
 
-            const sortedCandidates = [...candidatesRaw].sort((a, b) => b.voteCount - a.voteCount);
+            const sortedCandidates = [...candidatesRaw].sort((a, b) =>
+                Number(b.voteCount) - Number(a.voteCount)
+            );
+
             const sortedVoters = votersExpanded.sort((a, b) => a.hasVoted === b.hasVoted ? 0 : a.hasVoted ? -1 : 1);
 
             setCandidates(sortedCandidates);
