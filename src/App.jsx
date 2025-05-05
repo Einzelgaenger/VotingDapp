@@ -46,7 +46,7 @@ function App() {
         {page === 'myrooms' && <MyRooms setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}
         {page === 'join' && <JoinRoom setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}
         {page === 'roomdetail' && activeRoomAddress && (
-          <RoomDetail activeRoomAddress={activeRoomAddress} setPage={setPage} setReturnPage={setReturnPage} />
+          <RoomDetail activeRoomAddress={activeRoomAddress} setPage={setPage} setReturnPage={setReturnPage} setActiveRoomAddress={setActiveRoomAddress} />
         )}
         {page === 'roominteract' && activeRoomAddress && (
           <RoomInteract activeRoomAddress={activeRoomAddress} setPage={setPage} setReturnPage={setReturnPage} />
