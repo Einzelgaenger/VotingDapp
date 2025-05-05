@@ -5,6 +5,7 @@ import RoomFactoryAbi from '../abis/RoomFactory.json';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { ClipboardList } from 'lucide-react';
+import { RefreshCw } from 'lucide-react'
 
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
@@ -168,13 +169,10 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                     className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
                 >
                     {loading ? (
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16 8 8 0 01-8-8z" />
-                        </svg>
+                        <RefreshCw className="animate-spin h-5 w-5" />
                     ) : (
                         <>
-                            <ArrowPathIcon className="h-5 w-5" />
+                            <RefreshCw className="h-5 w-5" />
                             Refresh
                         </>
                     )}

@@ -13,6 +13,7 @@ import {
     ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 import { Settings2 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 const ROOMS_PER_PAGE = 10;
@@ -177,10 +178,10 @@ export default function AdminPanel({ setPage }) {
                     disabled={loading}
                 >
                     {loading ? (
-                        <ArrowPathIcon className="animate-spin w-5 h-5" />
+                        <RefreshCw className="animate-spin w-5 h-5" />
                     ) : (
                         <>
-                            <ArrowPathIcon className="w-5 h-5" />
+                            <RefreshCw className="w-5 h-5" />
                             Refresh
                         </>
                     )}
