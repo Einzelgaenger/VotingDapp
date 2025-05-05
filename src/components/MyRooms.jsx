@@ -29,24 +29,46 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             const allRooms = await factory.getRooms();
             const myRooms = allRooms.filter(r => r.createdBy.toLowerCase() === account.toLowerCase());
 
-            const formatted = myRooms.map((room, i) => ({
-                index: i,
-                address: room.roomAddress,
-                roomName: room.roomName,
-                description: '',
-                votersCount: null,
-                candidatesCount: null,
-                isActive: true,
-            }));
+            // Ambil detail semua room secara paralel
+            const roomDetails = await Promise.all(
+                myRooms.map(async (room) => {
+                    try {
+                        const contract = new Contract(room.roomAddress, VotingRoomAbi, provider);
+                        const [desc, voters, candidates, active] = await Promise.all([
+                            contract.description(),
+                            contract.getVoters(),
+                            contract.getCandidates(),
+                            contract.isActive(),
+                        ]);
+                        return {
+                            address: room.roomAddress,
+                            roomName: room.roomName,
+                            description: desc,
+                            votersCount: voters.length,
+                            candidatesCount: candidates.length,
+                            isActive: active,
+                        };
+                    } catch (err) {
+                        console.error(`Detail fetch failed for ${room.roomAddress}:`, err);
+                        return null;
+                    }
+                })
+            );
 
-            setRooms(formatted.reverse());
-            formatted.forEach((room, i) => fetchRoomDetail(room.address, i));
+            // Hapus room yang gagal atau tidak aktif
+            const filtered = roomDetails
+                .filter(r => r && r.isActive)
+                .reverse()
+                .map((r, i) => ({ ...r, index: i }));
+
+            setRooms(filtered);
         } catch (err) {
             console.error('Error fetching rooms:', err);
         } finally {
             setLoading(false);
         }
     };
+
 
     const fetchRoomDetail = async (address, i) => {
         try {
@@ -99,22 +121,29 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
 
     const handleDeactivate = async (address) => {
         if (!window.confirm("Deactivate and remove this room?")) return;
+
         try {
             const provider = new BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const contract = new Contract(address, VotingRoomAbi, signer);
-            const active = await contract.isActive();
-            if (active) {
+
+            const isActive = await contract.isActive();
+            if (isActive) {
                 const tx = await contract.deactivateRoom();
                 await tx.wait();
             }
-            alert("Room deactivated.");
-            await fetchRooms();
+
+            // Remove room from state immediately for instant UI feedback
+            setRooms(prev => prev.filter(r => r.address !== address));
+
+            // Optional: Re-fetch from blockchain to make sure it's synced
+            setTimeout(() => fetchRooms(), 500); // debounce sedikit
         } catch (err) {
-            console.error(err);
-            alert("Failed.");
+            console.error('Deactivate failed:', err);
+            alert("Failed to deactivate room.");
         }
     };
+
 
     const filtered = rooms.filter(r =>
         r.isActive && (
