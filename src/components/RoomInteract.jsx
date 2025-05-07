@@ -31,6 +31,54 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
         if (activeRoomAddress) fetchRoom();
     }, [activeRoomAddress]);
 
+    useEffect(() => {
+        if (!activeRoomAddress) return;
+
+        let contract;
+        let interval;
+
+        const setupListener = async () => {
+            try {
+                const provider = new BrowserProvider(window.ethereum);
+                contract = new Contract(activeRoomAddress, VotingRoomAbi, provider);
+
+                // Listener untuk refresh otomatis saat event terjadi
+                const refresh = () => fetchRoom();
+
+                contract.on("VoteCast", refresh);
+                contract.on("VoteStarted", refresh);
+                contract.on("VoteEnded", refresh);
+                contract.on("RoomReset", refresh);
+                contract.on("CandidateAdded", refresh);
+                contract.on("CandidateRemoved", refresh);
+                contract.on("VoterAdded", refresh);
+                contract.on("VoterRemoved", refresh);
+
+                // Polling fallback setiap 10 detik
+                interval = setInterval(() => fetchRoom(), 10000);
+            } catch (e) {
+                console.error("[Listener Error]", e);
+            }
+        };
+
+        setupListener();
+
+        return () => {
+            if (contract) {
+                contract.removeAllListeners("VoteCast");
+                contract.removeAllListeners("VoteStarted");
+                contract.removeAllListeners("VoteEnded");
+                contract.removeAllListeners("RoomReset");
+                contract.removeAllListeners("CandidateAdded");
+                contract.removeAllListeners("CandidateRemoved");
+                contract.removeAllListeners("VoterAdded");
+                contract.removeAllListeners("VoterRemoved");
+            }
+            if (interval) clearInterval(interval);
+        };
+    }, [activeRoomAddress]);
+
+
     const fetchRoom = async () => {
         try {
             setLoading(true);
