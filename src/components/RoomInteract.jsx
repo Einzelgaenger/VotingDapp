@@ -1,14 +1,14 @@
-// RoomInteract.jsx (rapi + modern UI Tailwind)
+// RoomInteract.jsx - Final full update with description, centered chart, copyable address, refresh button
 import { useEffect, useState } from 'react';
 import { BrowserProvider, Contract } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 import {
-    RefreshCw, ArrowLeft, Users, BadgeCheck, UserCheck,
-    ClipboardCheck, Copy, Plus, Trash2, CircleCheck
+    UserCheck, Plus, Trash2, ClipboardCheck, Copy, ArrowLeft, Users, CircleCheck,
+    User, RefreshCw, X, PlayIcon, ShieldCheck, ChevronDown, ChevronUp
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const BAR_COLORS = ['#6366F1', '#10B981', '#EC4899', '#F59E0B', '#F97316'];
 
@@ -17,14 +17,19 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const [roomInfo, setRoomInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [copied, setCopied] = useState('');
     const [candidateSearch, setCandidateSearch] = useState('');
     const [voterSearch, setVoterSearch] = useState('');
     const [newCandidate, setNewCandidate] = useState('');
+    const [newAdminAddress, setNewAdminAddress] = useState('');
     const [newVoterAddr, setNewVoterAddr] = useState('');
     const [newVoterName, setNewVoterName] = useState('');
-    const [copied, setCopied] = useState('');
+    const [adminExpanded, setAdminExpanded] = useState(true);
+    const [voterExpanded, setVoterExpanded] = useState(true);
 
-    useEffect(() => { if (activeRoomAddress) fetchRoom(); }, [activeRoomAddress]);
+    useEffect(() => {
+        if (activeRoomAddress) fetchRoom();
+    }, [activeRoomAddress]);
 
     const fetchRoom = async () => {
         try {
@@ -32,12 +37,19 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
             const provider = new BrowserProvider(window.ethereum);
             const contract = new Contract(activeRoomAddress, VotingRoomAbi, provider);
             const [
-                roomName, roomAdmin, superAdmin, isActive, votingStarted, votingEnded, maxVoters,
+                roomName, description, roomAdmin, superAdmin, isActive, votingStarted, votingEnded, maxVoters,
                 candidatesRaw, voterAddresses, voterNames
             ] = await Promise.all([
-                contract.roomName(), contract.roomAdmin(), contract.superAdmin(), contract.isActive(),
-                contract.votingStarted(), contract.votingEnded(), contract.maxVoters(),
-                contract.getCandidates(), contract.getVoterDetails().then(r => r[0]),
+                contract.roomName(),
+                contract.description(),
+                contract.roomAdmin(),
+                contract.superAdmin(),
+                contract.isActive(),
+                contract.votingStarted(),
+                contract.votingEnded(),
+                contract.maxVoters(),
+                contract.getCandidates(),
+                contract.getVoterDetails().then(r => r[0]),
                 contract.getVoterDetails().then(r => r[1])
             ]);
             const voters = await Promise.all(
@@ -46,10 +58,20 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                     return { address: addr.toLowerCase(), name: voterNames[i], hasVoted: data.hasVoted };
                 })
             );
-            const candidates = candidatesRaw.map(c => ({ id: c.id, name: c.name, voteCount: Number(c.voteCount) }));
+            const candidates = candidatesRaw.map(c => ({
+                id: c.id, name: c.name, voteCount: Number(c.voteCount)
+            }));
             setRoomInfo({
-                roomName, roomAdmin: roomAdmin.toLowerCase(), superAdmin: superAdmin.toLowerCase(),
-                isActive, votingStarted, votingEnded, maxVoters: maxVoters.toString(), candidates, voters
+                roomName,
+                description,
+                roomAdmin: roomAdmin.toLowerCase(),
+                superAdmin: superAdmin.toLowerCase(),
+                isActive,
+                votingStarted,
+                votingEnded,
+                maxVoters: maxVoters.toString(),
+                candidates,
+                voters
             });
         } catch (err) {
             toast.error('Failed to load room data');
@@ -74,39 +96,95 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
             await tx.wait();
             fetchRoom();
             toast.success(`${method} success`);
-        } catch (err) {
+        } catch {
             toast.error(`Failed to ${method}`);
         } finally {
             setActionLoading(false);
         }
     };
 
-    const copy = text => {
+    const copy = (text) => {
         navigator.clipboard.writeText(text);
         setCopied(text);
         setTimeout(() => setCopied(''), 1500);
     };
 
-    const filteredCandidates = roomInfo?.candidates.filter(c => c.name.toLowerCase().includes(candidateSearch.toLowerCase())).sort((a, b) => b.voteCount - a.voteCount);
-    const filteredVoters = roomInfo?.voters.filter(v => v.name.toLowerCase().includes(voterSearch.toLowerCase()) || v.address.toLowerCase().includes(voterSearch.toLowerCase()));
+    const filteredCandidates = roomInfo?.candidates.filter(c =>
+        c.name.toLowerCase().includes(candidateSearch.toLowerCase()));
+    const filteredVoters = roomInfo?.voters.filter(v =>
+        v.name.toLowerCase().includes(voterSearch.toLowerCase()) ||
+        v.address.toLowerCase().includes(voterSearch.toLowerCase()));
+
     if (loading || !roomInfo) return <div className="p-8">Loading...</div>;
 
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="px-6 py-10 max-w-5xl mx-auto">
             <Toaster />
-            <div className="bg-white shadow rounded-lg p-4">
-                <h2 className="text-3xl font-bold mb-1">{roomInfo.roomName}</h2>
-                <p className="text-sm text-gray-500 mb-3">Room Address: {activeRoomAddress}</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            {/* Header */}
+            <div className="relative text-center mb-6">
+                <h1 className="text-3xl font-bold">{roomInfo.roomName}</h1>
+                <p className="text-sm text-gray-600">{roomInfo.description}</p>
+                <div className="flex justify-center items-center text-xs text-gray-500 gap-2 mt-1">
+                    <span>{activeRoomAddress}</span>
+                    <button onClick={() => copy(activeRoomAddress)}>
+                        {copied === activeRoomAddress
+                            ? <ClipboardCheck className="w-4 h-4" />
+                            : <Copy className="w-4 h-4" />}
+                    </button>
+                </div>
+                <button
+                    onClick={fetchRoom}
+                    disabled={loading}
+                    className="absolute top-0 right-0 flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
+                >
+                    {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <>
+                        <RefreshCw className="h-5 w-5" /> Refresh
+                    </>}
+                </button>
+            </div>
+
+            {/* Notification */}
+            {hasVoted() && (
+                <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-6 flex items-center justify-center gap-2">
+                    <CircleCheck className="w-5 h-5" /> You have voted!
+                </div>
+            )}
+
+            {/* Cast Vote Section */}
+            {roomInfo.votingStarted && !roomInfo.votingEnded && isVoter() && !hasVoted() && (
+                <div className="bg-white p-4 rounded shadow mb-6">
+                    <h2 className="text-lg font-semibold mb-2">Cast Your Vote</h2>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        {filteredCandidates.map((c, i) => (
+                            <button
+                                key={c.id}
+                                onClick={() => handleTx("vote", c.id)}
+                                className="px-4 py-2 rounded text-white font-semibold"
+                                style={{ backgroundColor: BAR_COLORS[i % BAR_COLORS.length] }}
+                            >
+                                Vote for {c.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Voting Chart */}
+            <div className="bg-white p-4 rounded shadow mb-6">
+                <h2 className="text-lg font-semibold mb-2">Voting Chart</h2>
+                <div className="flex flex-wrap justify-center gap-4">
                     {filteredCandidates.map((c, i) => {
                         const percent = (c.voteCount / totalVotes) * 100;
                         return (
-                            <div key={c.id} className="text-center">
-                                <p className="text-xs mb-1 font-medium">{percent.toFixed(1)}%</p>
-                                <div className="h-28 bg-gray-100 rounded-md overflow-hidden relative">
+                            <div key={c.id} className="text-center w-24">
+                                <p className="text-sm font-medium mb-1">{percent.toFixed(1)}%</p>
+                                <div className="h-24 bg-gray-100 rounded overflow-hidden relative">
                                     {percent > 0 && (
-                                        <motion.div layout className="absolute bottom-0 w-full"
-                                            style={{ height: `${percent}%`, backgroundColor: BAR_COLORS[i % BAR_COLORS.length] }} />
+                                        <div
+                                            className="absolute bottom-0 w-full"
+                                            style={{ height: `${percent}%`, backgroundColor: BAR_COLORS[i % BAR_COLORS.length] }}
+                                        />
                                     )}
                                 </div>
                                 <p className="mt-1 font-semibold text-sm">{c.name}</p>
@@ -117,89 +195,111 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 </div>
             </div>
 
-            {roomInfo.votingStarted && !roomInfo.votingEnded && isVoter() && !hasVoted() && (
-                <div className="bg-white p-4 rounded-lg shadow text-center">
-                    <h3 className="text-lg font-semibold mb-3">Cast Your Vote</h3>
-                    <div className="flex flex-wrap justify-center gap-3">
-                        {filteredCandidates.map((c, i) => (
-                            <button key={c.id} onClick={() => handleTx("vote", c.id)}
-                                className="px-4 py-2 rounded-lg text-white font-semibold shadow"
-                                style={{ backgroundColor: BAR_COLORS[i % BAR_COLORS.length] }}>
-                                Vote for {c.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {hasVoted() && (
-                <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-2 rounded text-center flex justify-center items-center gap-2">
-                    <CircleCheck className="w-5 h-5" /> You have voted!
-                </div>
-            )}
-
+            {/* Admin Panel */}
             {isAdmin() && (
-                <div className="bg-white p-5 rounded-lg shadow space-y-4">
-                    <h3 className="text-xl font-bold mb-2">Admin Panel</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {!roomInfo.votingStarted && <button onClick={() => handleTx("startVote")} className="btn">Start Voting</button>}
-                        {roomInfo.votingStarted && !roomInfo.votingEnded && <button onClick={() => handleTx("endVote")} className="btn">End Voting</button>}
-                        <button onClick={() => handleTx("resetRoom")} className="btn">Reset Room</button>
-                        <button onClick={() => handleTx("deactivateRoom")} className="btn bg-red-500 text-white">Deactivate Room</button>
+                <div className="bg-white p-4 rounded shadow mb-6">
+                    <div className="flex justify-between items-center cursor-pointer" onClick={() => setAdminExpanded(!adminExpanded)}>
+                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                            <ShieldCheck className="w-5 h-5 text-indigo-600" /> Admin Panel
+                        </h2>
+                        {adminExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </div>
-
-                    <div>
-                        <h4 className="font-semibold">Manage Candidates</h4>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                            <input value={newCandidate} onChange={e => setNewCandidate(e.target.value)} placeholder="New Candidate"
-                                className="input w-full sm:w-auto" />
-                            <button onClick={() => handleTx("addCandidate", newCandidate)} className="btn text-sm flex gap-1 items-center"><Plus className="w-4 h-4" />Add</button>
-                            <button onClick={() => handleTx("clearCandidates")} className="btn text-sm"><Trash2 className="w-4 h-4" />Clear</button>
-                            <button onClick={() => handleTx("clearVotes")} className="btn text-sm"><Trash2 className="w-4 h-4" />Clear Votes</button>
+                    {adminExpanded && (
+                        <div className="mt-4">
+                            <div className="mb-4 flex gap-2 flex-wrap">
+                                <input value={newCandidate} onChange={(e) => setNewCandidate(e.target.value)} placeholder="New Candidate" className="border px-3 py-2 rounded" />
+                                <button onClick={() => handleTx('addCandidate', newCandidate)} className="bg-green-500 text-white px-3 py-2 rounded flex items-center gap-1"><Plus className="w-4 h-4" />Add</button>
+                            </div>
+                            <input type="text" placeholder="Search candidates..." value={candidateSearch} onChange={(e) => setCandidateSearch(e.target.value)} className="border px-3 py-2 rounded w-full mb-3" />
+                            <div className="space-y-2 mb-4">
+                                {filteredCandidates.map((c, i) => (
+                                    <div key={c.id} className="flex items-center justify-between p-2 rounded text-white" style={{ backgroundColor: BAR_COLORS[i % BAR_COLORS.length] }}>
+                                        <div>
+                                            <p className="font-medium">{c.name}</p>
+                                            <p className="text-sm">{c.voteCount} votes</p>
+                                        </div>
+                                        <button onClick={() => handleTx('removeCandidate', c.id)} className="text-white"><Trash2 className="w-4 h-4" /></button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex gap-2 mb-4">
+                                <button onClick={() => handleTx('clearCandidates')} className="bg-yellow-500 text-white px-3 py-2 rounded flex items-center gap-1"><Trash2 className="w-4 h-4" />Clear Candidates</button>
+                                <button onClick={() => handleTx('clearVotes')} className="bg-orange-500 text-white px-3 py-2 rounded flex items-center gap-1"><Trash2 className="w-4 h-4" />Clear Votes</button>
+                            </div>
+                            <div className="flex gap-2 mb-4">
+                                {!roomInfo.votingStarted && <button onClick={() => handleTx('startVote')} className="bg-indigo-500 text-white px-4 py-2 rounded flex items-center gap-2"><PlayIcon className="w-4 h-4" />Start</button>}
+                                {roomInfo.votingStarted && !roomInfo.votingEnded && <button onClick={() => handleTx('endVote')} className="bg-indigo-500 text-white px-4 py-2 rounded flex items-center gap-2"><X className="w-4 h-4" />End</button>}
+                                <button onClick={() => handleTx('resetRoom')} className="bg-gray-200 px-4 py-2 rounded flex items-center gap-2"><RefreshCw className="w-4 h-4" />Reset</button>
+                                <button onClick={() => handleTx('deactivateRoom')} className="bg-red-500 text-white px-4 py-2 rounded flex items-center gap-2"><Trash2 className="w-4 h-4" />Deactivate</button>
+                            </div>
+                            <div className="flex gap-2">
+                                <input type="text" value={newAdminAddress} onChange={(e) => setNewAdminAddress(e.target.value)} placeholder="New Admin Address" className="border px-3 py-2 rounded w-full" />
+                                <button onClick={() => handleTx('transferRoomAdmin', newAdminAddress)} className="bg-indigo-500 text-white px-4 py-2 rounded">Transfer Admin</button>
+                            </div>
                         </div>
-                        <ul className="text-sm ml-4 list-disc">
-                            {filteredCandidates.map((c, i) => <li key={i}>{c.name} ({c.voteCount} votes)</li>)}
-                        </ul>
-                    </div>
+                    )}
                 </div>
             )}
 
-            <div className="bg-white p-5 rounded-lg shadow space-y-3">
-                <h3 className="text-lg font-bold flex items-center gap-2"><UserCheck className="w-5 h-5" /> Voters Panel</h3>
-                <p className="text-sm text-gray-600">Total: {roomInfo.voters.length} | Voted: {votedCount} | Not Yet: {roomInfo.voters.length - votedCount}</p>
-                <input type="text" value={voterSearch} onChange={e => setVoterSearch(e.target.value)} placeholder="Search voter..."
-                    className="input w-full" />
-                <div className="space-y-1">
-                    {filteredVoters?.sort((a, b) => b.hasVoted - a.hasVoted || a.name.localeCompare(b.name)).map((v, i) => (
-                        <div key={i} className="flex items-center justify-between px-2 py-1 border rounded text-sm">
-                            <div>
-                                <span className="font-semibold mr-2">{v.name || 'Unnamed'}</span>
-                                <span className="text-gray-500">{v.address}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className={`text-sm font-bold ${v.hasVoted ? 'text-green-600' : 'text-yellow-600'}`}>
-                                    {v.hasVoted ? 'Voted' : 'Not Yet'}
-                                </span>
-                                <button onClick={() => copy(v.address)}>{copied === v.address ? <ClipboardCheck className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}</button>
-                                {isAdmin() && <button onClick={() => handleTx("removeVoter", v.address)} className="text-red-500"><Trash2 className="w-4 h-4" /></button>}
-                            </div>
-                        </div>
-                    ))}
+            {/* Voter Panel */}
+            <div className="bg-white p-5 rounded-lg shadow mb-6">
+                <div className="flex justify-between items-center cursor-pointer" onClick={() => setVoterExpanded(!voterExpanded)}>
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <UserCheck className="text-green-700" />
+                        Voters
+                    </h3>
+                    {voterExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </div>
-
-                {isAdmin() && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        <input value={newVoterAddr} onChange={e => setNewVoterAddr(e.target.value)} placeholder="Voter Address" className="input w-full sm:w-auto" />
-                        <input value={newVoterName} onChange={e => setNewVoterName(e.target.value)} placeholder="Voter Name" className="input w-full sm:w-auto" />
-                        <button onClick={() => handleTx("addVoter", newVoterAddr, newVoterName)} className="btn text-sm"><Plus className="w-4 h-4" />Add</button>
-                        <button onClick={() => handleTx("clearVoters")} className="btn bg-red-500 text-white text-sm"><Trash2 className="w-4 h-4" />Clear All</button>
+                {voterExpanded && (
+                    <div className="mt-4 space-y-4">
+                        {isAdmin() && (
+                            <div className="flex flex-wrap gap-2">
+                                <input value={newVoterAddr} onChange={(e) => setNewVoterAddr(e.target.value)} placeholder="Voter Address" className="border px-3 py-2 rounded w-full sm:w-auto" />
+                                <input value={newVoterName} onChange={(e) => setNewVoterName(e.target.value)} placeholder="Voter Name" className="border px-3 py-2 rounded w-full sm:w-auto" />
+                                <button onClick={() => handleTx("addVoter", newVoterAddr, newVoterName)} className="bg-green-500 text-white px-4 py-2 rounded flex items-center gap-1"><Plus className="w-4 h-4" />Add</button>
+                            </div>
+                        )}
+                        <p className="text-sm text-gray-600">Total: {roomInfo.voters.length} | Voted: {votedCount} | Not Yet: {roomInfo.voters.length - votedCount}</p>
+                        <input type="text" value={voterSearch} onChange={e => setVoterSearch(e.target.value)} placeholder="Search voters..." className="w-full px-3 py-2 border rounded" />
+                        <ul className="divide-y">
+                            <AnimatePresence>
+                                {filteredVoters.map((v, i) => (
+                                    <motion.li key={v.address} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.25 }} className="flex items-center justify-between py-2">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <User className="w-4 h-4 text-gray-500" />
+                                                <span className="font-medium">{v.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                <span className="font-mono">{v.address}</span>
+                                                <button onClick={() => copyToClipboard(v.address)} className="hover:text-indigo-600">
+                                                    {copied === v.address ? <ClipboardCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                </button>
+                                                <span className={`px-2 py-0.5 rounded-full text-white text-xs font-semibold ${v.hasVoted ? 'bg-green-500' : 'bg-yellow-500'}`}>{v.hasVoted ? 'Voted' : 'Not Voted'}</span>
+                                            </div>
+                                        </div>
+                                        {isAdmin() && (
+                                            <button onClick={() => handleTx("removeVoter", v.address)} className="bg-red-600 text-white px-2 py-1 text-xs rounded hover:bg-red-700 flex items-center gap-1">
+                                                <User className="w-3 h-3" /> Remove
+                                            </button>
+                                        )}
+                                    </motion.li>
+                                ))}
+                            </AnimatePresence>
+                        </ul>
                     </div>
                 )}
             </div>
 
-            <div className="mt-6 flex gap-4">
-                <button onClick={() => { setReturnPage('roominteract'); setPage('roommembers'); }} className="btn-outline"><Users className="w-4 h-4" /> Room Members</button>
-                <button onClick={() => setPage('myrooms')} className="btn-outline"><ArrowLeft className="w-4 h-4" /> Back</button>
+            {/* Back Buttons */}
+            <div className="flex gap-3 mt-8">
+                <button onClick={() => setPage('myrooms')} className="bg-gray-100 px-4 py-2 rounded flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+                <button onClick={() => { setReturnPage('roominteract'); setPage('roommembers'); }}
+                    className="bg-gray-100 px-4 py-2 rounded flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Room Members
+                </button>
             </div>
         </div>
     );
