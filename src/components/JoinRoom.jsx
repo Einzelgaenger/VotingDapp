@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Contract, isAddress } from 'ethers';
+import { Contract, isAddress, BrowserProvider } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 
@@ -21,8 +21,9 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
                 return;
             }
 
-            const provider = new window.ethereum.__ethers__.BrowserProvider(window.ethereum);
-            const contract = new Contract(roomAddress, VotingRoomAbi, provider);
+            const provider = new BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new Contract(roomAddress, VotingRoomAbi, signer);
 
             const [roomAdmin, superAdmin, voterList] = await Promise.all([
                 contract.roomAdmin(),
