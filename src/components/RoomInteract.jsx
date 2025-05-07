@@ -181,15 +181,15 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 </div>
                 <div className="absolute top-0 right-0">
                     <button
-                        onClick={fetchRoom}
+                        onClick={() => fetchRoom(true)}
                         disabled={loading}
                         className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
                     >
-                        {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <>
-                            <RefreshCw className="h-5 w-5" /> Refresh
-                        </>}
+                        <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
                     </button>
                 </div>
+
             </div>
 
             {/* Wait until roomInfo exists */}
