@@ -54,8 +54,8 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                 contract.on("VoterAdded", refresh);
                 contract.on("VoterRemoved", refresh);
 
-                // Polling fallback setiap 10 detik
-                interval = setInterval(() => fetchRoom(), 10000);
+                // Polling fallback setiap 5 detik
+                interval = setInterval(() => fetchRoom(), 5000);
             } catch (e) {
                 console.error("[Listener Error]", e);
             }
