@@ -170,30 +170,47 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
             <Toaster />
 
             {/* Header */}
-            <div className="relative text-center mb-6">
-                <h1 className="text-3xl font-bold">{roomInfo?.roomName || '...'}</h1>
-                <p className="text-sm text-gray-600">{roomInfo?.description}</p>
-                <div className="flex justify-center items-center gap-2 mt-1 text-xs text-gray-500">
-                    <span className="font-mono">{activeRoomAddress}</span>
-                    <button onClick={() => copy(activeRoomAddress)}>
+            <div className="relative text-center mb-8 px-4 space-y-2">
+                {/* Room Name */}
+                <h1 className="text-4xl font-bold text-gray-900 tracking-tight leading-snug">
+                    {roomInfo?.roomName || 'Room Title'}
+                </h1>
+
+                {/* Room Description */}
+                <p className="text-sm text-gray-500 tracking-wide">
+                    {roomInfo?.description || 'Welcome to a secure and modern voting experience'}
+                </p>
+
+                {/* Room Address */}
+                <div className="flex justify-center items-center gap-2 text-xs text-gray-600 mt-1">
+                    <span className="font-mono bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-300 shadow-sm">
+                        {activeRoomAddress}
+                    </span>
+                    <button
+                        onClick={() => copy(activeRoomAddress)}
+                        className="hover:text-indigo-600 transition"
+                        title="Copy Address"
+                    >
                         {copied === activeRoomAddress
                             ? <ClipboardCheck className="w-4 h-4 text-green-500" />
                             : <Copy className="w-4 h-4" />}
                     </button>
                 </div>
+
+                {/* Refresh Button */}
                 <div className="absolute top-0 right-0">
                     <button
                         onClick={() => fetchRoom(true)}
                         disabled={loading}
-                        className={`relative inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md disabled:opacity-50`}
+                        className="relative inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md transition duration-300 ease-in-out disabled:opacity-50"
                     >
                         <RefreshCw className={`w-5 h-5 mr-2 ${loading ? "animate-spin" : ""}`} />
-                        <span className="relative">Refresh</span>
+                        Refresh
                     </button>
-
                 </div>
-
             </div>
+
+
 
             {/* Wait until roomInfo exists */}
             {!roomInfo ? (
@@ -493,7 +510,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                                     </div>
                                                     <div className="flex items-center gap-2 text-xs text-gray-600">
                                                         <span className="font-mono">{v.address}</span>
-                                                        <button onClick={() => copyToClipboard(v.address)} className="hover:text-indigo-600">
+                                                        <button onClick={() => copy(v.address)} className="hover:text-indigo-600">
                                                             {copied === v.address ? <ClipboardCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                                         </button>
                                                         <span className={`px-2 py-0.5 rounded-full text-white text-xs font-semibold ${v.hasVoted ? 'bg-green-500' : 'bg-yellow-500'}`}>{v.hasVoted ? 'Voted' : 'Not Voted'}</span>

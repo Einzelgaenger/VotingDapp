@@ -10,6 +10,7 @@ import RoomInteract from './components/RoomInteract';
 import RoomMember from './components/RoomMember';
 import AdminPanel from './components/AdminPanel';
 import HomePage from './components/HomePage';
+import MainLayout from './components/ui/MainLayout';
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -21,6 +22,7 @@ function App() {
   const showNavbar = page !== 'landing';
 
   return (
+    // <MainLayout>
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       {showNavbar && (
         <SidebarNavbar
@@ -58,6 +60,7 @@ function App() {
         {page === 'home' && <HomePage setPage={setPage} />}
       </main>
     </div>
+    // </MainLayout>
   );
 }
 
