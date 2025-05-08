@@ -330,133 +330,143 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                     <ChevronDown className="w-5 h-5" />
                                 )}
                             </div>
-                            {adminExpanded && (
-                                <div className="mt-4 space-y-6">
-                                    {/* Top Control Buttons */}
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {!roomInfo.votingStarted && (
+                            <AnimatePresence initial={false}>
+                                {adminExpanded && (
+                                    <motion.div
+                                        key="admin-panel"
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.35, ease: "easeInOut" }}
+                                        className="overflow-hidden mt-4 space-y-6"
+                                    >
+                                        {/* Top Control Buttons */}
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {!roomInfo.votingStarted && (
+                                                <button
+                                                    onClick={() => handleTx("startVote")}
+                                                    className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md"
+                                                >
+                                                    <PlayIcon className="w-4 h-4 mr-1" />
+                                                    Start
+                                                </button>
+
+                                            )}
+                                            {roomInfo.votingStarted && !roomInfo.votingEnded && (
+                                                <button
+                                                    onClick={() => handleTx("endVote")}
+                                                    className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md"
+                                                >
+                                                    <X className="w-4 h-4 mr-1" />
+                                                    End
+                                                </button>
+
+                                            )}
                                             <button
-                                                onClick={() => handleTx("startVote")}
-                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md"
+                                                onClick={() => handleTx("resetRoom")}
+                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-gray-800 transition-all duration-500 ease-in-out border border-gray-400 rounded-md cursor-pointer group bg-gradient-to-b from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 active:to-gray-500 shadow-md"
                                             >
-                                                <PlayIcon className="w-4 h-4 mr-1" />
-                                                Start
+                                                <RefreshCw className="w-4 h-4 mr-1" />
+                                                Reset
                                             </button>
 
-                                        )}
-                                        {roomInfo.votingStarted && !roomInfo.votingEnded && (
                                             <button
-                                                onClick={() => handleTx("endVote")}
-                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md"
+                                                onClick={() => handleTx("deactivateRoom")}
+                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-red-600 rounded-md cursor-pointer group bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 shadow-md"
                                             >
-                                                <X className="w-4 h-4 mr-1" />
-                                                End
+                                                <Trash2 className="w-4 h-4 mr-1" />
+                                                Deactivate
                                             </button>
 
-                                        )}
-                                        <button
-                                            onClick={() => handleTx("resetRoom")}
-                                            className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-gray-800 transition-all duration-500 ease-in-out border border-gray-400 rounded-md cursor-pointer group bg-gradient-to-b from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 active:to-gray-500 shadow-md"
-                                        >
-                                            <RefreshCw className="w-4 h-4 mr-1" />
-                                            Reset
-                                        </button>
-
-                                        <button
-                                            onClick={() => handleTx("deactivateRoom")}
-                                            className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-red-600 rounded-md cursor-pointer group bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 shadow-md"
-                                        >
-                                            <Trash2 className="w-4 h-4 mr-1" />
-                                            Deactivate
-                                        </button>
-
-                                    </div>
-
-                                    {/* Candidate Section */}
-                                    <div className="space-y-3">
-                                        <h3 className="font-semibold text-lg flex items-center gap-2">
-                                            <BadgeCheck className="text-yellow-600" />
-                                            Candidates
-                                        </h3>
-
-                                        <div className="flex flex-wrap gap-2">
-                                            <input
-                                                value={newCandidate}
-                                                onChange={(e) => setNewCandidate(e.target.value)}
-                                                placeholder="New Candidate"
-                                                className="border px-3 py-2 rounded w-full sm:w-auto"
-                                            />
-                                            <button
-                                                onClick={() => handleTx("addCandidate", newCandidate)}
-                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-green-600 rounded-md cursor-pointer group bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 shadow-md"
-                                            >
-                                                <Plus className="w-4 h-4 mr-1" />
-                                                Add Candidate
-                                            </button>
-
-                                            <button onClick={() => handleTx("clearCandidates")}
-                                                className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 active:to-yellow-700 border border-yellow-500 rounded-md shadow-md transition duration-300 ease-in-out">
-                                                <Trash2 className="w-4 h-4 mr-1" /> Clear Candidates
-                                            </button>
-                                            <button onClick={() => handleTx("clearVotes")}
-                                                className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 active:to-orange-700 border border-orange-500 rounded-md shadow-md transition duration-300 ease-in-out">
-                                                <Trash2 className="w-4 h-4 mr-1" /> Clear Votes
-                                            </button>
                                         </div>
 
-                                        <input
-                                            type="text"
-                                            placeholder="Search candidates..."
-                                            value={candidateSearch}
-                                            onChange={(e) => setCandidateSearch(e.target.value)}
-                                            className="w-full px-3 py-2 border rounded"
-                                        />
-                                        <AnimatePresence>
-                                            {filteredCandidates.map((c, i) => (
-                                                <motion.div
-                                                    key={c.id}
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    transition={{ duration: 0.3, delay: i * 0.04 }}
-                                                    className="flex items-center justify-between px-4 py-2 rounded border"
-                                                    style={{
-                                                        backgroundColor: `${BAR_COLORS[i % BAR_COLORS.length]}20`,
-                                                        borderColor: `${BAR_COLORS[i % BAR_COLORS.length]}40`,
-                                                    }}
+                                        {/* Candidate Section */}
+                                        <div className="space-y-3">
+                                            <h3 className="font-semibold text-lg flex items-center gap-2">
+                                                <BadgeCheck className="text-yellow-600" />
+                                                Candidates
+                                            </h3>
+
+                                            <div className="flex flex-wrap gap-2">
+                                                <input
+                                                    value={newCandidate}
+                                                    onChange={(e) => setNewCandidate(e.target.value)}
+                                                    placeholder="New Candidate"
+                                                    className="border px-3 py-2 rounded w-full sm:w-auto"
+                                                />
+                                                <button
+                                                    onClick={() => handleTx("addCandidate", newCandidate)}
+                                                    className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-green-600 rounded-md cursor-pointer group bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 shadow-md"
                                                 >
-                                                    <div>
-                                                        <p className="font-medium text-sm">{c.name}</p>
-                                                        <p className="text-xs text-gray-600">{c.voteCount} votes</p>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleTx("removeCandidate", c.id)}
-                                                        className="text-red-600 hover:text-red-800"
+                                                    <Plus className="w-4 h-4 mr-1" />
+                                                    Add Candidate
+                                                </button>
+
+                                                <button onClick={() => handleTx("clearCandidates")}
+                                                    className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 active:to-yellow-700 border border-yellow-500 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                    <Trash2 className="w-4 h-4 mr-1" /> Clear Candidates
+                                                </button>
+                                                <button onClick={() => handleTx("clearVotes")}
+                                                    className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 active:to-orange-700 border border-orange-500 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                    <Trash2 className="w-4 h-4 mr-1" /> Clear Votes
+                                                </button>
+                                            </div>
+
+                                            <input
+                                                type="text"
+                                                placeholder="Search candidates..."
+                                                value={candidateSearch}
+                                                onChange={(e) => setCandidateSearch(e.target.value)}
+                                                className="w-full px-3 py-2 border rounded"
+                                            />
+                                            <AnimatePresence>
+                                                {filteredCandidates.map((c, i) => (
+                                                    <motion.div
+                                                        key={c.id}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        transition={{ duration: 0.3, delay: i * 0.04 }}
+                                                        className="flex items-center justify-between px-4 py-2 rounded border"
+                                                        style={{
+                                                            backgroundColor: `${BAR_COLORS[i % BAR_COLORS.length]}20`,
+                                                            borderColor: `${BAR_COLORS[i % BAR_COLORS.length]}40`,
+                                                        }}
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </motion.div>
-                                            ))}
-                                        </AnimatePresence>
-                                    </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm">{c.name}</p>
+                                                            <p className="text-xs text-gray-600">{c.voteCount} votes</p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleTx("removeCandidate", c.id)}
+                                                            className="text-red-600 hover:text-red-800"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
 
-                                    {/* Transfer Admin */}
-                                    <div className="flex flex-col gap-2">
-                                        <input
-                                            type="text"
-                                            value={newAdminAddress}
-                                            onChange={(e) => setNewAdminAddress(e.target.value)}
-                                            placeholder="New Admin Address"
-                                            className="border px-3 py-2 rounded w-full"
-                                        />
-                                        <button onClick={() => handleTx("transferRoomAdmin", newAdminAddress)}
-                                            className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md transition duration-300 ease-in-out">
-                                            Transfer Admin
-                                        </button>
+                                        {/* Transfer Admin */}
+                                        <div className="flex flex-col gap-2">
+                                            <input
+                                                type="text"
+                                                value={newAdminAddress}
+                                                onChange={(e) => setNewAdminAddress(e.target.value)}
+                                                placeholder="New Admin Address"
+                                                className="border px-3 py-2 rounded w-full"
+                                            />
+                                            <button onClick={() => handleTx("transferRoomAdmin", newAdminAddress)}
+                                                className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                Transfer Admin
+                                            </button>
 
-                                    </div>
-                                </div>
-                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
                         </div>
                     )}
 
