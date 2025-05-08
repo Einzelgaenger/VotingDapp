@@ -1,4 +1,3 @@
-// App.jsx
 import { useState } from 'react';
 import SidebarNavbar from './components/SidebarNavbar';
 import LandingPage from './components/LandingPage';
@@ -17,23 +16,22 @@ function App() {
   const [activeRoomAddress, setActiveRoomAddress] = useState(null);
   const [returnPage, setReturnPage] = useState('roomdetail');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false); // ✅ NEW
+  const [collapsed, setCollapsed] = useState(false);
 
   const showNavbar = page !== 'landing';
 
   return (
-    // <MainLayout>
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <MainLayout>
+      {/* <div className="min-h-screen bg-gray-50 text-gray-900 font-sans"></div> */}
       {showNavbar && (
         <SidebarNavbar
           setPage={setPage}
-          currentPage={page}          // ✅ Tambahkan ini
+          currentPage={page}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />
-
       )}
 
       <main
@@ -59,8 +57,7 @@ function App() {
         {page === 'adminpanel' && <AdminPanel setPage={setPage} />}
         {page === 'home' && <HomePage setPage={setPage} />}
       </main>
-    </div>
-    // </MainLayout>
+    </MainLayout>
   );
 }
 
