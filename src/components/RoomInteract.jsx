@@ -5,10 +5,12 @@ import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 import {
     UserCheck, Plus, Trash2, ClipboardCheck, Copy, ArrowLeft, Users, CircleCheck,
-    User, RefreshCw, X, PlayIcon, ShieldCheck, ChevronDown, ChevronUp
+    User, RefreshCw, X, PlayIcon, ShieldCheck, ChevronDown, ChevronUp, BadgeCheck
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from "@material-tailwind/react";
+
 
 const BAR_COLORS = ['#6366F1', '#10B981', '#EC4899', '#F59E0B', '#F97316'];
 
@@ -183,11 +185,12 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                     <button
                         onClick={() => fetchRoom(true)}
                         disabled={loading}
-                        className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
+                        className={`relative inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md disabled:opacity-50`}
                     >
-                        <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh
+                        <RefreshCw className={`w-5 h-5 mr-2 ${loading ? "animate-spin" : ""}`} />
+                        <span className="relative">Refresh</span>
                     </button>
+
                 </div>
 
             </div>
@@ -205,7 +208,74 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                         </div>
                     )}
 
-                    {/* Cast Vote Section */}
+                    {/* Voting Chart */}
+                    <div className="bg-white p-4 rounded shadow mb-6">
+                        <h2 className="text-lg font-semibold mb-2">Voting Chart</h2>
+                        <div className="flex flex-wrap justify-center gap-4">
+                            {filteredCandidates.map((c, i) => {
+                                const percent = (c.voteCount / totalVotes) * 100 || 0;
+                                const adjustedPercent = Math.max(percent, 5); // Minimal 5% agar label terlihat
+                                const colorFrom = BAR_COLORS[i % BAR_COLORS.length];
+                                const colorTo = `${colorFrom}cc`;
+                                const canVote =
+                                    roomInfo.votingStarted && !roomInfo.votingEnded && isVoter() && !hasVoted();
+                                const effectiveHeight = percent > 0 ? `${percent}%` : '4px'; // chart bar minimum
+
+                                return (
+                                    <div
+                                        key={c.id}
+                                        className="text-center w-24 group flex flex-col items-center"
+                                    >
+                                        {/* Chart Container */}
+                                        <div className="relative w-full h-44 pt-5  rounded overflow-visible">
+                                            {/* Animated Bar */}
+                                            <motion.div
+                                                className="absolute bottom-0 w-full rounded-t-md"
+                                                style={{
+                                                    backgroundImage: `linear-gradient(to top, ${colorFrom}, ${colorTo})`,
+                                                }}
+                                                initial={{ height: 0 }}
+                                                animate={{ height: effectiveHeight }}
+                                                transition={{ duration: 0.6, type: "spring" }}
+                                            />
+
+
+                                            {/* Animated Percentage Label */}
+                                            <motion.p
+                                                className="absolute text-sm font-semibold left-1/2 -translate-x-1/2 text-black"
+                                                initial={{ bottom: 0 }}
+                                                animate={{ bottom: `${adjustedPercent}%` }}
+                                                transition={{ duration: 0.6 }}
+                                            >
+                                                {percent.toFixed(1)}%
+                                            </motion.p>
+                                        </div>
+
+                                        {/* Candidate Name Button */}
+                                        <button
+                                            disabled={!canVote}
+                                            onClick={() => handleTx("vote", c.id)}
+                                            className={`mt-1 text-sm font-semibold transition underline-offset-2 px-2 py-1 rounded border w-full 
+              ${canVote ? '' : 'text-gray-400 cursor-not-allowed'}`}
+                                            style={{
+                                                backgroundColor: canVote ? colorFrom : '',
+                                                color: canVote ? '#fff' : '',
+                                                cursor: canVote ? 'pointer' : 'not-allowed',
+                                            }}
+                                        >
+                                            {c.name}
+                                        </button>
+
+                                        {/* Vote Count */}
+                                        <p className="text-xs text-gray-500">{c.voteCount} vote(s)</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+
+                    {/* Cast Vote Section
                     {roomInfo.votingStarted && !roomInfo.votingEnded && isVoter() && !hasVoted() && (
                         <div className="bg-white p-4 rounded shadow mb-6">
                             <h2 className="text-lg font-semibold mb-2">Cast Your Vote</h2>
@@ -222,32 +292,9 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                 ))}
                             </div>
                         </div>
-                    )}
+                    )} */}
 
-                    {/* Voting Chart */}
-                    <div className="bg-white p-4 rounded shadow mb-6">
-                        <h2 className="text-lg font-semibold mb-2">Voting Chart</h2>
-                        <div className="flex flex-wrap justify-center gap-4">
-                            {filteredCandidates.map((c, i) => {
-                                const percent = (c.voteCount / totalVotes) * 100;
-                                return (
-                                    <div key={c.id} className="text-center w-24">
-                                        <p className="text-sm font-medium mb-1">{percent.toFixed(1)}%</p>
-                                        <div className="h-24 bg-gray-100 rounded overflow-hidden relative">
-                                            {percent > 0 && (
-                                                <div
-                                                    className="absolute bottom-0 w-full"
-                                                    style={{ height: `${percent}%`, backgroundColor: BAR_COLORS[i % BAR_COLORS.length] }}
-                                                />
-                                            )}
-                                        </div>
-                                        <p className="mt-1 font-semibold text-sm">{c.name}</p>
-                                        <p className="text-xs text-gray-500">{c.voteCount} vote(s)</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+
 
                     {/* Admin Panel */}
                     {isAdmin() && (
@@ -268,25 +315,78 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                             </div>
                             {adminExpanded && (
                                 <div className="mt-4 space-y-6">
-                                    {/* Add Candidate */}
-                                    <div className="flex flex-wrap gap-2">
-                                        <input
-                                            value={newCandidate}
-                                            onChange={(e) => setNewCandidate(e.target.value)}
-                                            placeholder="New Candidate"
-                                            className="border px-3 py-2 rounded w-full sm:w-auto"
-                                        />
+                                    {/* Top Control Buttons */}
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {!roomInfo.votingStarted && (
+                                            <button
+                                                onClick={() => handleTx("startVote")}
+                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md"
+                                            >
+                                                <PlayIcon className="w-4 h-4 mr-1" />
+                                                Start
+                                            </button>
+
+                                        )}
+                                        {roomInfo.votingStarted && !roomInfo.votingEnded && (
+                                            <button
+                                                onClick={() => handleTx("endVote")}
+                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-indigo-600 rounded-md cursor-pointer group bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 shadow-md"
+                                            >
+                                                <X className="w-4 h-4 mr-1" />
+                                                End
+                                            </button>
+
+                                        )}
                                         <button
-                                            onClick={() => handleTx("addCandidate", newCandidate)}
-                                            className="bg-green-500 text-white px-4 py-2 rounded flex items-center gap-1"
+                                            onClick={() => handleTx("resetRoom")}
+                                            className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-gray-800 transition-all duration-500 ease-in-out border border-gray-400 rounded-md cursor-pointer group bg-gradient-to-b from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 active:to-gray-500 shadow-md"
                                         >
-                                            <Plus className="w-4 h-4" />
-                                            Add
+                                            <RefreshCw className="w-4 h-4 mr-1" />
+                                            Reset
                                         </button>
+
+                                        <button
+                                            onClick={() => handleTx("deactivateRoom")}
+                                            className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-red-600 rounded-md cursor-pointer group bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 shadow-md"
+                                        >
+                                            <Trash2 className="w-4 h-4 mr-1" />
+                                            Deactivate
+                                        </button>
+
                                     </div>
 
-                                    {/* Search + List Candidates */}
-                                    <div className="space-y-2">
+                                    {/* Candidate Section */}
+                                    <div className="space-y-3">
+                                        <h3 className="font-semibold text-lg flex items-center gap-2">
+                                            <BadgeCheck className="text-yellow-600" />
+                                            Candidates
+                                        </h3>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            <input
+                                                value={newCandidate}
+                                                onChange={(e) => setNewCandidate(e.target.value)}
+                                                placeholder="New Candidate"
+                                                className="border px-3 py-2 rounded w-full sm:w-auto"
+                                            />
+                                            <button
+                                                onClick={() => handleTx("addCandidate", newCandidate)}
+                                                className="relative z-30 inline-flex items-center justify-center w-auto px-5 py-2 font-semibold text-white transition-all duration-500 ease-in-out border border-green-600 rounded-md cursor-pointer group bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 shadow-md"
+                                            >
+                                                <Plus className="w-4 h-4 mr-1" />
+                                                Add Candidate
+                                            </button>
+
+                                            <button onClick={() => handleTx("clearCandidates")}
+                                                className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 active:to-yellow-700 border border-yellow-500 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                <Trash2 className="w-4 h-4 mr-1" /> Clear Candidates
+                                            </button>
+                                            <button onClick={() => handleTx("clearVotes")}
+                                                className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 active:to-orange-700 border border-orange-500 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                <Trash2 className="w-4 h-4 mr-1" /> Clear Votes
+                                            </button>
+                                        </div>
+
                                         <input
                                             type="text"
                                             placeholder="Search candidates..."
@@ -294,71 +394,33 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                             onChange={(e) => setCandidateSearch(e.target.value)}
                                             className="w-full px-3 py-2 border rounded"
                                         />
-                                        {filteredCandidates.map((c, i) => (
-                                            <div
-                                                key={c.id}
-                                                className="flex items-center justify-between px-4 py-2 rounded border"
-                                                style={{
-                                                    backgroundColor: `${BAR_COLORS[i % BAR_COLORS.length]}20`,
-                                                    borderColor: `${BAR_COLORS[i % BAR_COLORS.length]}40`,
-                                                }}
-                                            >
-                                                <div>
-                                                    <p className="font-medium text-sm">{c.name}</p>
-                                                    <p className="text-xs text-gray-600">{c.voteCount} votes</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleTx("removeCandidate", c.id)}
-                                                    className="text-red-600 hover:text-red-800"
+                                        <AnimatePresence>
+                                            {filteredCandidates.map((c, i) => (
+                                                <motion.div
+                                                    key={c.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.3, delay: i * 0.04 }}
+                                                    className="flex items-center justify-between px-4 py-2 rounded border"
+                                                    style={{
+                                                        backgroundColor: `${BAR_COLORS[i % BAR_COLORS.length]}20`,
+                                                        borderColor: `${BAR_COLORS[i % BAR_COLORS.length]}40`,
+                                                    }}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-wrap gap-2">
-                                        <button
-                                            onClick={() => handleTx("clearCandidates")}
-                                            className="bg-yellow-500 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
-                                        >
-                                            <Trash2 className="w-4 h-4" /> Clear Candidates
-                                        </button>
-                                        <button
-                                            onClick={() => handleTx("clearVotes")}
-                                            className="bg-orange-500 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
-                                        >
-                                            <Trash2 className="w-4 h-4" /> Clear Votes
-                                        </button>
-                                        {!roomInfo.votingStarted && (
-                                            <button
-                                                onClick={() => handleTx("startVote")}
-                                                className="bg-indigo-500 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
-                                            >
-                                                <PlayIcon className="w-4 h-4" /> Start
-                                            </button>
-                                        )}
-                                        {roomInfo.votingStarted && !roomInfo.votingEnded && (
-                                            <button
-                                                onClick={() => handleTx("endVote")}
-                                                className="bg-indigo-500 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
-                                            >
-                                                <X className="w-4 h-4" /> End
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => handleTx("resetRoom")}
-                                            className="bg-gray-200 px-4 py-2 rounded text-sm flex items-center gap-1"
-                                        >
-                                            <RefreshCw className="w-4 h-4" /> Reset
-                                        </button>
-                                        <button
-                                            onClick={() => handleTx("deactivateRoom")}
-                                            className="bg-red-600 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
-                                        >
-                                            <Trash2 className="w-4 h-4" /> Deactivate
-                                        </button>
+                                                    <div>
+                                                        <p className="font-medium text-sm">{c.name}</p>
+                                                        <p className="text-xs text-gray-600">{c.voteCount} votes</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleTx("removeCandidate", c.id)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
                                     </div>
 
                                     {/* Transfer Admin */}
@@ -370,12 +432,11 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                             placeholder="New Admin Address"
                                             className="border px-3 py-2 rounded w-full"
                                         />
-                                        <button
-                                            onClick={() => handleTx("transferRoomAdmin", newAdminAddress)}
-                                            className="bg-indigo-500 text-white px-4 py-2 rounded text-sm"
-                                        >
+                                        <button onClick={() => handleTx("transferRoomAdmin", newAdminAddress)}
+                                            className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md transition duration-300 ease-in-out">
                                             Transfer Admin
                                         </button>
+
                                     </div>
                                 </div>
                             )}
@@ -398,15 +459,33 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                     <div className="flex flex-wrap gap-2">
                                         <input value={newVoterAddr} onChange={(e) => setNewVoterAddr(e.target.value)} placeholder="Voter Address" className="border px-3 py-2 rounded w-full sm:w-auto" />
                                         <input value={newVoterName} onChange={(e) => setNewVoterName(e.target.value)} placeholder="Voter Name" className="border px-3 py-2 rounded w-full sm:w-auto" />
-                                        <button onClick={() => handleTx("addVoter", newVoterAddr, newVoterName)} className="bg-green-500 text-white px-4 py-2 rounded flex items-center gap-1"><Plus className="w-4 h-4" />Add</button>
+                                        <button onClick={() => handleTx("addVoter", newVoterAddr, newVoterName)}
+                                            className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 border border-green-600 rounded-md shadow-md transition duration-300 ease-in-out">
+                                            <Plus className="w-4 h-4 mr-1" /> Add Voter
+                                        </button>
+
                                     </div>
                                 )}
-                                <p className="text-sm text-gray-600">Total: {roomInfo.voters.length} | Voted: {votedCount} | Not Yet: {roomInfo.voters.length - votedCount}</p>
+                                <p className="text-sm text-gray-600">
+                                    Total: {roomInfo.voters.length} | Voted: {votedCount} | Not Yet: {roomInfo.voters.length - votedCount}
+                                </p>
+                                {isAdmin() && roomInfo?.maxVoters !== undefined && (
+                                    <p className="text-sm text-indigo-600 font-medium">
+                                        Max Voters Allowed: {roomInfo.maxVoters}
+                                    </p>
+                                )}
+
+
+
                                 <input type="text" value={voterSearch} onChange={e => setVoterSearch(e.target.value)} placeholder="Search voters..." className="w-full px-3 py-2 border rounded" />
                                 <ul className="divide-y">
                                     <AnimatePresence>
                                         {filteredVoters.map((v, i) => (
-                                            <motion.li key={v.address} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.25 }} className="flex items-center justify-between py-2">
+                                            <motion.li key={v.address} initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.3, delay: i * 0.04 }}
+                                                className="flex items-center justify-between py-2">
                                                 <div className="flex flex-col">
                                                     <div className="flex items-center gap-2 text-sm">
                                                         <User className="w-4 h-4 text-gray-500" />
@@ -421,8 +500,9 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                                     </div>
                                                 </div>
                                                 {isAdmin() && (
-                                                    <button onClick={() => handleTx("removeVoter", v.address)} className="bg-red-600 text-white px-2 py-1 text-xs rounded hover:bg-red-700 flex items-center gap-1">
-                                                        <User className="w-3 h-3" /> Remove
+                                                    <button onClick={() => handleTx("removeVoter", v.address)}
+                                                        className="relative inline-flex items-center justify-center px-3 py-1 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-xs transition duration-300 ease-in-out">
+                                                        <User className="w-3 h-3 mr-1" /> Remove
                                                     </button>
                                                 )}
                                             </motion.li>
@@ -437,12 +517,13 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
 
             {/* Back Buttons */}
             <div className="flex gap-3 mt-8">
-                <button onClick={() => setPage('myrooms')} className="bg-gray-100 px-4 py-2 rounded flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" /> Back
+                <button onClick={() => setPage('myrooms')}
+                    className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 active:to-gray-400 border border-gray-300 rounded-md shadow-md transition duration-300 ease-in-out">
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Back
                 </button>
                 <button onClick={() => { setReturnPage('roominteract'); setPage('roommembers'); }}
-                    className="bg-gray-100 px-4 py-2 rounded flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Room Members
+                    className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 active:to-gray-400 border border-gray-300 rounded-md shadow-md transition duration-300 ease-in-out">
+                    <Users className="w-4 h-4 mr-1" /> Room Members
                 </button>
             </div>
         </div>
