@@ -10,9 +10,13 @@ import {
 import toast, { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@material-tailwind/react";
+// import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
+// import CustomToast from './ui/CustomToast';
 
 
 const BAR_COLORS = ['#6366F1', '#10B981', '#EC4899', '#F59E0B', '#F97316'];
+
 
 export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage }) {
     const { account } = useWallet();
@@ -28,6 +32,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const [newVoterName, setNewVoterName] = useState('');
     const [adminExpanded, setAdminExpanded] = useState(true);
     const [voterExpanded, setVoterExpanded] = useState(true);
+
 
     useEffect(() => {
         if (activeRoomAddress) fetchRoom();
@@ -137,21 +142,27 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
     const totalVotes = roomInfo?.candidates.reduce((sum, c) => sum + c.voteCount, 0) || 1;
 
     const handleTx = async (method, ...args) => {
-        try {
-            setActionLoading(true);
-            const provider = new BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            const contract = new Contract(activeRoomAddress, VotingRoomAbi, signer);
-            const tx = await contract[method](...args);
-            await tx.wait();
-            fetchRoom();
-            toast.success(`${method} success`);
-        } catch {
-            toast.error(`Failed to ${method}`);
-        } finally {
-            setActionLoading(false);
-        }
+        setActionLoading(true);
+        const provider = new BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new Contract(activeRoomAddress, VotingRoomAbi, signer);
+
+        await toast.promise(
+            (async () => {
+                const tx = await contract[method](...args);
+                await tx.wait();
+                await fetchRoom();
+            })(),
+            {
+                loading: `Waiting for ${method}...`,
+                success: `${method} success`,
+                error: `Failed to ${method}`,
+            }
+        );
+
+        setActionLoading(false);
     };
+
 
     const copy = (text) => {
         navigator.clipboard.writeText(text);
@@ -167,7 +178,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
 
     return (
         <div className="px-6 py-10 max-w-5xl mx-auto">
-            <Toaster />
+            {/* <Toaster /> */}
 
             {/* Header */}
             <div className="relative text-center mb-8 px-4 space-y-2">
@@ -218,12 +229,20 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
             ) : (
                 <>
                     {/* Voted Notification */}
-                    {hasVoted() && (
-                        <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-6 flex items-center justify-center gap-2">
-                            <CircleCheck className="w-5 h-5" />
-                            You have voted!
-                        </div>
-                    )}
+                    <AnimatePresence>
+                        {hasVoted() && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                transition={{ duration: 0.4, ease: "easeInOut" }}
+                                className="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-6 flex items-center justify-center gap-2 shadow"
+                            >
+                                <CircleCheck className="w-5 h-5" />
+                                You have voted!
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Voting Chart */}
                     <div className="bg-white p-4 rounded shadow mb-6">
@@ -402,10 +421,7 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                                     Add Candidate
                                                 </button>
 
-                                                <button onClick={() => handleTx("clearCandidates")}
-                                                    className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 active:to-yellow-700 border border-yellow-500 rounded-md shadow-md transition duration-300 ease-in-out">
-                                                    <Trash2 className="w-4 h-4 mr-1" /> Clear Candidates
-                                                </button>
+
                                                 <button onClick={() => handleTx("clearVotes")}
                                                     className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 active:to-orange-700 border border-orange-500 rounded-md shadow-md transition duration-300 ease-in-out">
                                                     <Trash2 className="w-4 h-4 mr-1" /> Clear Votes
@@ -446,6 +462,10 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
                                                     </motion.div>
                                                 ))}
                                             </AnimatePresence>
+                                            <button onClick={() => handleTx("clearCandidates")}
+                                                className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 active:to-yellow-700 border border-yellow-500 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                <Trash2 className="w-4 h-4 mr-1" /> Clear Candidates
+                                            </button>
                                         </div>
 
                                         {/* Transfer Admin */}
@@ -473,71 +493,81 @@ export default function RoomInteract({ activeRoomAddress, setPage, setReturnPage
 
                     {/* Voter Panel */}
                     <div className="bg-white p-5 rounded-lg shadow mb-6">
-                        <div className="flex justify-between items-center cursor-pointer" onClick={() => setVoterExpanded(!voterExpanded)}>
+                        <div
+                            className="flex justify-between items-center cursor-pointer"
+                            onClick={() => setVoterExpanded(!voterExpanded)}
+                        >
                             <h3 className="font-semibold text-lg flex items-center gap-2">
                                 <UserCheck className="text-green-700" />
                                 Voters
                             </h3>
                             {voterExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                         </div>
-                        {voterExpanded && (
-                            <div className="mt-4 space-y-4">
-                                {isAdmin() && (
-                                    <div className="flex flex-wrap gap-2">
-                                        <input value={newVoterAddr} onChange={(e) => setNewVoterAddr(e.target.value)} placeholder="Voter Address" className="border px-3 py-2 rounded w-full sm:w-auto" />
-                                        <input value={newVoterName} onChange={(e) => setNewVoterName(e.target.value)} placeholder="Voter Name" className="border px-3 py-2 rounded w-full sm:w-auto" />
-                                        <button onClick={() => handleTx("addVoter", newVoterAddr, newVoterName)}
-                                            className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 border border-green-600 rounded-md shadow-md transition duration-300 ease-in-out">
-                                            <Plus className="w-4 h-4 mr-1" /> Add Voter
-                                        </button>
 
-                                    </div>
-                                )}
-                                <p className="text-sm text-gray-600">
-                                    Total: {roomInfo.voters.length} | Voted: {votedCount} | Not Yet: {roomInfo.voters.length - votedCount}
-                                </p>
-                                {isAdmin() && roomInfo?.maxVoters !== undefined && (
-                                    <p className="text-sm text-indigo-600 font-medium">
-                                        Max Voters Allowed: {roomInfo.maxVoters}
+                        <AnimatePresence>
+                            {voterExpanded && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    className="overflow-hidden mt-4 space-y-4"
+                                >
+                                    {isAdmin() && (
+                                        <div className="flex flex-wrap gap-2">
+                                            <input value={newVoterAddr} onChange={(e) => setNewVoterAddr(e.target.value)} placeholder="Voter Address" className="border px-3 py-2 rounded w-full sm:w-auto" />
+                                            <input value={newVoterName} onChange={(e) => setNewVoterName(e.target.value)} placeholder="Voter Name" className="border px-3 py-2 rounded w-full sm:w-auto" />
+                                            <button onClick={() => handleTx("addVoter", newVoterAddr, newVoterName)} className="relative inline-flex items-center justify-center px-5 py-2 font-semibold text-white bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 border border-green-600 rounded-md shadow-md transition duration-300 ease-in-out">
+                                                <Plus className="w-4 h-4 mr-1" /> Add Voter
+                                            </button>
+                                        </div>
+                                    )}
+                                    <p className="text-sm text-gray-600">
+                                        Total: {roomInfo.voters.length} | Voted: {votedCount} | Not Yet: {roomInfo.voters.length - votedCount}
                                     </p>
-                                )}
-
-
-
-                                <input type="text" value={voterSearch} onChange={e => setVoterSearch(e.target.value)} placeholder="Search voters..." className="w-full px-3 py-2 border rounded" />
-                                <ul className="divide-y">
-                                    <AnimatePresence>
-                                        {filteredVoters.map((v, i) => (
-                                            <motion.li key={v.address} initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.3, delay: i * 0.04 }}
-                                                className="flex items-center justify-between py-2">
-                                                <div className="flex flex-col">
-                                                    <div className="flex items-center gap-2 text-sm">
-                                                        <User className="w-4 h-4 text-gray-500" />
-                                                        <span className="font-medium">{v.name}</span>
+                                    {isAdmin() && roomInfo?.maxVoters !== undefined && (
+                                        <p className="text-sm text-indigo-600 font-medium">
+                                            Max Voters Allowed: {roomInfo.maxVoters}
+                                        </p>
+                                    )}
+                                    <input type="text" value={voterSearch} onChange={e => setVoterSearch(e.target.value)} placeholder="Search voters..." className="w-full px-3 py-2 border rounded" />
+                                    <ul className="divide-y">
+                                        <AnimatePresence>
+                                            {filteredVoters.map((v, i) => (
+                                                <motion.li key={v.address}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.3, delay: i * 0.04 }}
+                                                    className="flex items-center justify-between py-2"
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-2 text-sm">
+                                                            <User className="w-4 h-4 text-gray-500" />
+                                                            <span className="font-medium">{v.name}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                            <span className="font-mono">{v.address}</span>
+                                                            <button onClick={() => copy(v.address)} className="hover:text-indigo-600">
+                                                                {copied === v.address ? <ClipboardCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                            </button>
+                                                            <span className={`px-2 py-0.5 rounded-full text-white text-xs font-semibold ${v.hasVoted ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                                                                {v.hasVoted ? 'Voted' : 'Not Voted'}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                        <span className="font-mono">{v.address}</span>
-                                                        <button onClick={() => copy(v.address)} className="hover:text-indigo-600">
-                                                            {copied === v.address ? <ClipboardCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                    {isAdmin() && (
+                                                        <button onClick={() => handleTx("removeVoter", v.address)} className="relative inline-flex items-center justify-center px-3 py-1 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-xs transition duration-300 ease-in-out">
+                                                            <User className="w-3 h-3 mr-1" /> Remove
                                                         </button>
-                                                        <span className={`px-2 py-0.5 rounded-full text-white text-xs font-semibold ${v.hasVoted ? 'bg-green-500' : 'bg-yellow-500'}`}>{v.hasVoted ? 'Voted' : 'Not Voted'}</span>
-                                                    </div>
-                                                </div>
-                                                {isAdmin() && (
-                                                    <button onClick={() => handleTx("removeVoter", v.address)}
-                                                        className="relative inline-flex items-center justify-center px-3 py-1 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-xs transition duration-300 ease-in-out">
-                                                        <User className="w-3 h-3 mr-1" /> Remove
-                                                    </button>
-                                                )}
-                                            </motion.li>
-                                        ))}
-                                    </AnimatePresence>
-                                </ul>
-                            </div>
-                        )}
+                                                    )}
+                                                </motion.li>
+                                            ))}
+                                        </AnimatePresence>
+                                    </ul>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </>
             )}

@@ -10,6 +10,7 @@ import RoomMember from './components/RoomMember';
 import AdminPanel from './components/AdminPanel';
 import HomePage from './components/HomePage';
 import MainLayout from './components/ui/MainLayout';
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -23,6 +24,7 @@ function App() {
   return (
     <MainLayout>
       {/* <div className="min-h-screen bg-gray-50 text-gray-900 font-sans"></div> */}
+      <Toaster position="top-right" />
       {showNavbar && (
         <SidebarNavbar
           setPage={setPage}
