@@ -35,3 +35,10 @@ export async function getUserRole(account, provider) {
 export const getVotingRoomContract = (address, signerOrProvider) => {
     return new Contract(address, VotingRoomAbi, signerOrProvider);
 };
+
+// 🧠 Fungsi bantu untuk menampilkan address secara ringkas
+export function getReadableAddress(address) {
+    if (!address) return "";
+    return `${address.substring(0, 6)}...${address.slice(-4)}`;
+}
+
