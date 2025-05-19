@@ -3,10 +3,7 @@ import { BrowserProvider, Contract } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 import VotingRoomAbi from '../abis/VotingRoom.json';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
-import { ClipboardList } from 'lucide-react';
-import { RefreshCw } from 'lucide-react'
-
+import { ClipboardList, RefreshCw, BadgeCheck, UserCheck } from 'lucide-react';
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 const ROOMS_PER_PAGE = 10;
@@ -17,6 +14,7 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [tab, setTab] = useState('created'); // 'created' or 'joined'
 
     useEffect(() => {
         if (account) fetchRooms();
@@ -28,11 +26,9 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             const provider = new BrowserProvider(window.ethereum);
             const factory = new Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, provider);
             const allRooms = await factory.getRooms();
-            const myRooms = allRooms.filter(r => r.createdBy.toLowerCase() === account.toLowerCase());
 
-            // Ambil detail semua room secara paralel
-            const roomDetails = await Promise.all(
-                myRooms.map(async (room) => {
+            const detailedRooms = await Promise.all(
+                allRooms.map(async (room) => {
                     try {
                         const contract = new Contract(room.roomAddress, VotingRoomAbi, provider);
                         const [desc, voters, candidates, active] = await Promise.all([
@@ -41,6 +37,9 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                             contract.getCandidates(),
                             contract.isActive(),
                         ]);
+                        const isCreator = room.createdBy.toLowerCase() === account.toLowerCase();
+                        const isVoter = voters.map(v => v.toLowerCase()).includes(account.toLowerCase());
+
                         return {
                             address: room.roomAddress,
                             roomName: room.roomName,
@@ -48,53 +47,22 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                             votersCount: voters.length,
                             candidatesCount: candidates.length,
                             isActive: active,
+                            isCreator,
+                            isVoter,
                         };
                     } catch (err) {
-                        console.error(`Detail fetch failed for ${room.roomAddress}:`, err);
+                        console.error(`Failed to fetch details for ${room.roomAddress}:`, err);
                         return null;
                     }
                 })
             );
 
-            // Hapus room yang gagal atau tidak aktif
-            const filtered = roomDetails
-                .filter(r => r && r.isActive)
-                .reverse()
-                .map((r, i) => ({ ...r, index: i }));
-
-            setRooms(filtered);
+            const validRooms = detailedRooms.filter(r => r && r.isActive).reverse();
+            setRooms(validRooms);
         } catch (err) {
-            console.error('Error fetching rooms:', err);
+            console.error("Error fetching rooms:", err);
         } finally {
             setLoading(false);
-        }
-    };
-
-
-    const fetchRoomDetail = async (address, i) => {
-        try {
-            const provider = new BrowserProvider(window.ethereum);
-            const contract = new Contract(address, VotingRoomAbi, provider);
-            const [desc, voters, candidates, active] = await Promise.all([
-                contract.description(),
-                contract.getVoters(),
-                contract.getCandidates(),
-                contract.isActive(),
-            ]);
-
-            setRooms(prev => {
-                const updated = [...prev];
-                updated[i] = {
-                    ...updated[i],
-                    description: desc,
-                    votersCount: voters.length,
-                    candidatesCount: candidates.length,
-                    isActive: active,
-                };
-                return updated;
-            });
-        } catch (err) {
-            console.error(`Detail fetch failed for ${address}:`, err);
         }
     };
 
@@ -113,7 +81,9 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             if (isAdmin || isVoter) {
                 setActiveRoomAddress(address);
                 setPage('roominteract');
-            } else alert("You're not authorized.");
+            } else {
+                alert("You're not authorized.");
+            }
         } catch (err) {
             console.error(err);
             alert("Failed to join room.");
@@ -127,78 +97,80 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
             const provider = new BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const contract = new Contract(address, VotingRoomAbi, signer);
-
-            const isActive = await contract.isActive();
-            if (isActive) {
-                const tx = await contract.deactivateRoom();
-                await tx.wait();
-            }
-
-            // Remove room from state immediately for instant UI feedback
+            const tx = await contract.deactivateRoom();
+            await tx.wait();
             setRooms(prev => prev.filter(r => r.address !== address));
-
-            // Optional: Re-fetch from blockchain to make sure it's synced
-            setTimeout(() => fetchRooms(), 500); // debounce sedikit
         } catch (err) {
-            console.error('Deactivate failed:', err);
-            alert("Failed to deactivate room.");
+            console.error(err);
+            alert("Failed to deactivate.");
         }
     };
 
-
     const filtered = rooms.filter(r =>
-        r.isActive && (
-            r.roomName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.address.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        r.isActive &&
+        (tab === 'created' ? r.isCreator : r.isVoter) &&
+        (r.roomName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.address.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
     const total = Math.ceil(filtered.length / ROOMS_PER_PAGE);
     const paginated = filtered.slice((currentPage - 1) * ROOMS_PER_PAGE, currentPage * ROOMS_PER_PAGE);
 
     return (
         <div className="px-6 py-10 max-w-5xl mx-auto text-gray-800">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                     <ClipboardList className="w-6 h-6 text-indigo-600" />
-                    My Voting Rooms
+                    My Rooms
                 </h2>
-
                 <button
                     onClick={fetchRooms}
                     disabled={loading}
                     className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
                 >
-                    {loading ? (
-                        <RefreshCw className="animate-spin h-5 w-5" />
-                    ) : (
-                        <>
-                            <RefreshCw className="h-5 w-5" />
-                            Refresh
-                        </>
-                    )}
+                    {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <> <RefreshCw className="h-5 w-5" /> Refresh</>}
+                </button>
+            </div>
+
+            <div className="flex gap-4 mb-6">
+                <button
+                    className={`px-4 py-2 rounded font-semibold ${tab === 'created' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+                    onClick={() => setTab('created')}
+                >
+                    Rooms I Created
+                </button>
+                <button
+                    className={`px-4 py-2 rounded font-semibold ${tab === 'joined' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+                    onClick={() => setTab('joined')}
+                >
+                    Rooms I'm In
                 </button>
             </div>
 
             <input
                 type="text"
-                placeholder="Search Room Name or Address"
+                placeholder="Search room name..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="mb-6 w-full px-4 py-2 border rounded"
+                className="w-full px-4 py-2 border rounded mb-6"
             />
 
             {loading ? (
                 <p>Loading...</p>
             ) : paginated.length === 0 ? (
-                <p>No active rooms found.</p>
+                <p className="text-center text-gray-500">No rooms found.</p>
             ) : (
                 paginated.map((r, i) => (
                     <div key={i} className="border rounded p-4 mb-4 shadow-sm">
                         <p><strong>Room Name:</strong> {r.roomName}</p>
                         <p><strong>Room Address:</strong> {r.address}</p>
-                        <p><strong>Description:</strong> {r.description || 'Loading...'}</p>
-                        <p><strong>Voters:</strong> {r.votersCount ?? '...'}</p>
-                        <p><strong>Candidates:</strong> {r.candidatesCount ?? '...'}</p>
+                        <p><strong>Description:</strong> {r.description}</p>
+                        <p><strong>Voters:</strong> {r.votersCount}</p>
+                        <p><strong>Candidates:</strong> {r.candidatesCount}</p>
+                        <p className="text-xs font-medium mt-1">
+                            {r.isCreator && <span className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded mr-2"><BadgeCheck className="inline w-4 h-4 mr-1" />You are the creator</span>}
+                            {r.isVoter && !r.isCreator && <span className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded"><UserCheck className="inline w-4 h-4 mr-1" />You are a voter</span>}
+                        </p>
 
                         <div className="mt-4 flex gap-2 flex-wrap">
                             <button
@@ -216,12 +188,14 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                             >
                                 Join Room
                             </button>
-                            <button
-                                onClick={() => handleDeactivate(r.address)}
-                                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                            >
-                                Deactivate & Remove
-                            </button>
+                            {r.isCreator && (
+                                <button
+                                    onClick={() => handleDeactivate(r.address)}
+                                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                >
+                                    Deactivate & Remove
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))
