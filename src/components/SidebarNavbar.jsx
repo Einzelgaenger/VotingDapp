@@ -1,5 +1,5 @@
 import { useWallet } from '../contexts/WalletContext';
-import { Menu, X, Plus, ClipboardList, KeyRound, Settings2 } from 'lucide-react';
+import { Menu, X, Plus, ClipboardList, KeyRound, Settings2, LogIn } from 'lucide-react';
 import ConnectWalletButton from './ConnectWalletButton';
 import Logo from '../assets/SecureVote2.png';
 
@@ -16,7 +16,7 @@ export default function SidebarNavbar({
     const navItems = [
         { label: 'Create Room', page: 'create', icon: <Plus size={18} /> },
         { label: 'My Rooms', page: 'myrooms', icon: <ClipboardList size={18} /> },
-        { label: 'Join Room', page: 'join', icon: <KeyRound size={18} /> },
+        { label: 'Join Room', page: 'join', icon: <LogIn size={18} /> },
         ...(role === 'creator' || role === 'superadmin'
             ? [{ label: 'Admin Panel', page: 'adminpanel', icon: <Settings2 size={18} /> }]
             : []),
