@@ -24,7 +24,8 @@ function App() {
   return (
     <MainLayout>
       {/* <div className="min-h-screen bg-gray-50 text-gray-900 font-sans"></div> */}
-      <Toaster position="top-right" />
+
+
       {showNavbar && (
         <SidebarNavbar
           setPage={setPage}
@@ -52,6 +53,12 @@ function App() {
         {page === 'adminpanel' && <AdminPanel setPage={setPage} />}
         {page === 'home' && <HomePage setPage={setPage} />}
       </main>
+
+      <Toaster
+        position="top-right"
+        toastOptions={{ duration: 3000 }}
+        containerClassName="__toast-container"
+      />
     </MainLayout>
   );
 }

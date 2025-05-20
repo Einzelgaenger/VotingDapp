@@ -10,3 +10,9 @@ body {
   font-family: 'Inter', sans-serif;
   scroll-behavior: smooth;
 }
+
+/* Tailwind default z-50 navbar + toast workaround */
+div.__toast-container {
+  margin-top: 50px !important;
+  /* match navbar height */
+}
