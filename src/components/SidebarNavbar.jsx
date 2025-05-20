@@ -1,132 +1,108 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ClipboardList, Plus, LogIn, Settings2, Menu, X } from 'lucide-react';
 import { useWallet } from '../contexts/WalletContext';
-import { Menu, X, Plus, ClipboardList, KeyRound, Settings2, LogIn } from 'lucide-react';
 import ConnectWalletButton from './ConnectWalletButton';
 import Logo from '../assets/SecureVote2.png';
 
-export default function SidebarNavbar({
-    setPage,
-    currentPage,
-    collapsed,
-    setCollapsed,
-    sidebarOpen,
-    setSidebarOpen,
-}) {
-    const { account, role } = useWallet();
+const navItems = [
+    { label: 'Create', icon: <Plus size={18} />, page: 'create' },
+    { label: 'My Rooms', icon: <ClipboardList size={18} />, page: 'myrooms' },
+    { label: 'Join', icon: <LogIn size={18} />, page: 'join' },
+];
 
-    const navItems = [
-        { label: 'Create Room', page: 'create', icon: <Plus size={18} /> },
-        { label: 'My Rooms', page: 'myrooms', icon: <ClipboardList size={18} /> },
-        { label: 'Join Room', page: 'join', icon: <LogIn size={18} /> },
-        ...(role === 'creator' || role === 'superadmin'
-            ? [{ label: 'Admin Panel', page: 'adminpanel', icon: <Settings2 size={18} /> }]
-            : []),
-    ];
+export default function SidebarNavbar({ setPage, currentPage }) {
+    const { role } = useWallet();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
-    const handleNavClick = (page) => {
-        setPage(page);
-        setSidebarOpen(false);
+    const renderButton = (item) => {
+        const isActive = currentPage === item.page;
+        return (
+            <motion.button
+                key={item.page}
+                onClick={() => {
+                    setPage(item.page);
+                    setMobileOpen(false);
+                }}
+                whileTap={{ scale: 0.92 }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full relative overflow-hidden transition-all duration-300
+          ${isActive
+                        ? 'bg-cyberblue/20 text-cyberblue shadow-inner'
+                        : 'text-cyberdark hover:bg-white/30 hover:text-cyberblue'}`}
+            >
+                {item.icon}
+                <span>{item.label}</span>
+                <AnimatePresence>
+                    {isActive && (
+                        <motion.div
+                            layoutId="nav-glow"
+                            className="absolute inset-0 rounded-full border border-cyberblue/50 pointer-events-none"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                        />
+                    )}
+                </AnimatePresence>
+            </motion.button>
+        );
     };
 
     return (
-        <>
-            {/* Mobile Topbar */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white shadow flex items-center justify-between px-4 py-3">
-                <button onClick={() => setSidebarOpen(true)}><Menu /></button>
-                <ConnectWalletButton />
-            </div>
-
-            {/* Sidebar */}
+        <motion.div
+            initial={{ y: -80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="fixed top-0 left-0 right-0 z-50 px-4 py-3 bg-white/20 backdrop-blur-lg border-b border-white/20 shadow-[0_2px_10px_rgba(255,255,255,0.05)] flex items-center justify-between"
+        >
+            {/* Logo */}
             <div
-                className={`fixed top-0 left-0 h-screen z-50 bg-white border-r shadow-md transition-all duration-300
-                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                ${collapsed ? 'md:w-20' : 'md:w-64'} md:translate-x-0`}
+                className="flex items-center gap-3 cursor-pointer group"
+                onClick={() => setPage('home')}
             >
-                {/* Header */}
-                <div className="relative flex items-center justify-between px-4 py-4 border-b border-gray-200 h-[72px]">
-                    <div
-                        className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => handleNavClick('home')}
-                    >
-                        <img
-                            src={Logo}
-                            alt="SecureVote Logo"
-                            className="w-10 h-10"
-                        />
-                        {!collapsed && (
-                            <h1 className="text-lg font-bold text-indigo-600 transition-all duration-300">
-                                SecureVote
-                            </h1>
-                        )}
-                    </div>
-
-                    {/* Triangle Toggle Button */}
-                    <div className="hidden md:block">
-                        <div
-                            onClick={() => setCollapsed(!collapsed)}
-                            className="absolute top-0 -right-5 h-full flex items-center cursor-pointer z-50"
-                        >
-                            {/* Triangle with visible border & sharp tip */}
-                            <div className="relative w-[20px] h-[72px] group">
-                                <svg width="20" height="72" viewBox="0 0 20 72" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-                                    <defs>
-                                        <filter id="triangleShadow" x="-50%" y="-50%" width="200%" height="200%">
-                                            <feDropShadow dx="1" dy="0" stdDeviation="1" floodColor="#cbd5e1" floodOpacity="0.5" />
-                                        </filter>
-                                    </defs>
-
-                                    {/* Segitiga: ubah fill saat hover pakai class tailwind group-hover */}
-                                    <path d="M0,0 L20,36 L0,72 Z" className="fill-white group-hover:fill-indigo-100 transition-colors duration-300" />
-
-                                    <path d="M0,0 L20,36 L0,72" fill="none" stroke="#e5e7eb" strokeWidth="1" filter="url(#triangleShadow)" />
-                                </svg>
-                            </div>
-
-
-
-
-                        </div>
-                    </div>
-
-
-
-                    {/* Close for mobile */}
-                    <button onClick={() => setSidebarOpen(false)} className="md:hidden text-gray-600">
-                        <X />
-                    </button>
-                </div>
-
-                {/* Nav Items */}
-                <nav className="flex flex-col px-3 py-4 space-y-1">
-                    {account &&
-                        navItems.map((item, index) => {
-                            const isActive = item.page === currentPage;
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => handleNavClick(item.page)}
-                                    className={`flex items-center gap-3 px-4 py-2 rounded-md text-left font-medium transition
-                                        ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}
-                                >
-                                    <div className="min-w-[20px]">{item.icon}</div>
-                                    {!collapsed && <span>{item.label}</span>}
-                                </button>
-                            );
-                        })}
-                </nav>
+                <img src={Logo} alt="logo" className="w-9 h-9" />
+                <h1 className="text-cyberblue text-xl font-exo font-bold tracking-wide group-hover:brightness-125 transition hidden sm:block">
+                    SecureVote
+                </h1>
             </div>
 
-            {/* Mobile Overlay */}
-            {sidebarOpen && (
-                <div
-                    onClick={() => setSidebarOpen(false)}
-                    className="fixed inset-0 bg-black/30 z-40 md:hidden"
-                ></div>
-            )}
+            {/* Desktop Nav */}
+            <div className="hidden sm:flex items-center gap-5 font-exo text-sm">
+                {navItems.map(renderButton)}
+                {(role === 'creator' || role === 'superadmin') &&
+                    renderButton({ label: 'Admin', icon: <Settings2 size={18} />, page: 'adminpanel' })}
+            </div>
 
-            {/* Desktop Wallet */}
-            <div className="hidden md:flex fixed top-0 right-0 p-4 z-40">
+            {/* Mobile Toggle */}
+            <div className="sm:hidden flex items-center gap-2">
+                <button onClick={() => setMobileOpen(!mobileOpen)} className="text-cyberdark">
+                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
+
+            {/* Wallet */}
+            <div className="hidden sm:block relative z-50">
                 <ConnectWalletButton />
             </div>
-        </>
+
+            {/* Mobile Dropdown */}
+            <AnimatePresence>
+                {mobileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute top-full left-0 w-full bg-white backdrop-blur-md border-t border-white/10 shadow-md py-3 px-4 flex flex-col gap-2 sm:hidden z-40"
+                    >
+                        {navItems.map(renderButton)}
+                        {(role === 'creator' || role === 'superadmin') &&
+                            renderButton({ label: 'Admin', icon: <Settings2 size={18} />, page: 'adminpanel' })}
+                        <div className="pt-2">
+                            <ConnectWalletButton />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 }

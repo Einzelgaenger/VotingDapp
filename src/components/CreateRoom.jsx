@@ -4,6 +4,8 @@ import { useWallet } from '../contexts/WalletContext';
 import RoomFactoryAbi from '../abis/RoomFactory.json';
 import { Loader2, Rocket, ClipboardList } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useEffect } from 'react';
+
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 
@@ -15,6 +17,24 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
     const [loading, setLoading] = useState(false);
     const [txHash, setTxHash] = useState(null);
     const [newRoomAddress, setNewRoomAddress] = useState(null);
+
+    const [localTime, setLocalTime] = useState('');
+
+    useEffect(() => {
+        const updateTime = () => {
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Jakarta'
+            });
+            setLocalTime(time);
+        };
+
+        updateTime(); // initialize immediately
+        const interval = setInterval(updateTime, 30000); // refresh every 30s
+        return () => clearInterval(interval);
+    }, []);
 
     const handleCreateRoom = async () => {
         if (!roomName || !description || !maxVoters || isNaN(maxVoters) || Number(maxVoters) <= 0) {
@@ -34,16 +54,15 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
             const tx = await toast.promise(
                 roomFactory.createRoom(roomName, description, maxVoters),
                 {
-                    loading: 'Creating room...',
-                    success: 'Room created successfully!',
-                    error: 'Failed to create room.'
+                    loading: 'Creating session...',
+                    success: 'Voting session created!',
+                    error: 'Failed to create session.',
                 }
             );
             const receipt = await tx.wait();
 
-
             setTxHash(tx.hash);
-            toast.success('Room created successfully!');
+            toast.success('Session created successfully!');
 
             const event = receipt.logs.map(log => {
                 try {
@@ -59,8 +78,7 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
             }
         } catch (error) {
             console.error('Error creating room:', error);
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
     };
@@ -73,62 +91,68 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-indigo-50 to-white">
-            <div className="bg-white/80 backdrop-blur-md p-8 rounded-xl shadow-lg max-w-md w-full">
-                <div className="flex justify-center mb-4">
-                    <ClipboardList className="w-12 h-12 text-indigo-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 text-center mb-6 flex items-center justify-center gap-2">
-                    Create Voting Room
-                </h2>
+        <div className="min-h-screen flex items-center justify-center px-4 relative">
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-100/50 rounded-3xl shadow-[0_8px_30px_rgba(0,240,255,0.07)] max-w-xl w-full px-6 py-8 md:px-10 md:py-12 transition-all">
 
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700">Room Name</label>
+                {/* Header with Icon */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <ClipboardList className="w-8 h-8 text-cyberblue/80" />
+                    <h2 className="text-3xl md:text-4xl font-exo font-semibold text-cyberdark tracking-wide">
+                        New Voting Session
+                    </h2>
+                </div>
+
+                <div className="space-y-6 font-exo text-cyberdark">
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium">Session Title</label>
                         <input
                             type="text"
-                            placeholder="Enter room name"
                             value={roomName}
                             onChange={(e) => setRoomName(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition"
+                            placeholder="Enter session title"
+                            className="w-full px-4 py-2.5 rounded-lg border border-blue-100 bg-white text-cyberdark placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-cyberblue/80 focus:outline-none"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700">Room Description</label>
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium">Room Purpose</label>
                         <textarea
-                            placeholder="Describe your room purpose..."
+                            rows={3}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            rows={4}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition"
+                            placeholder="Describe the purpose..."
+                            className="w-full px-4 py-2.5 rounded-lg border border-blue-100 bg-white text-cyberdark placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-cyberblue/80 focus:outline-none"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700">Max Voters</label>
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium">Voter Limit</label>
                         <input
                             type="number"
-                            placeholder="e.g. 100"
                             value={maxVoters}
                             onChange={(e) => setMaxVoters(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition"
+                            placeholder="e.g. 100"
+                            className="w-full px-4 py-2.5 rounded-lg border border-blue-100 bg-white text-cyberdark placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-cyberblue/80 focus:outline-none"
                         />
                     </div>
 
                     <button
                         onClick={handleCreateRoom}
                         disabled={loading}
-                        className="w-full inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md text-sm"
+                        className="w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-cyberblue hover:brightness-110 hover:shadow-[0_0_10px_#00f0ff55] rounded-full transition-all shadow-md active:scale-95"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                        Create Room
+                        {loading && <Loader2 className="w-5 h-5 mr-2 animate-spin" />} Initialize Room
                     </button>
 
                     {txHash && (
-                        <div className="text-sm text-gray-600 break-all bg-gray-50 p-3 border rounded">
+                        <div className="text-xs text-cyberdark mt-6 bg-blue-50 border border-blue-200 p-4 rounded-lg shadow-sm">
                             <strong>Tx Hash:</strong><br />
-                            <a href={`https://sepolia.etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer" className="text-blue-600 underline">
+                            <a
+                                href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-cyberblue underline"
+                            >
                                 {txHash}
                             </a>
                         </div>
@@ -137,13 +161,22 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
                     {newRoomAddress && (
                         <button
                             onClick={handleJoinNewRoom}
-                            className="w-full inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800 border border-green-600 rounded-md shadow-md text-sm"
+                            className="w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-emerald-500 hover:bg-emerald-400 rounded-full transition-all shadow-md active:scale-95"
                         >
-                            <Rocket className="w-4 h-4 mr-2" /> Join New Room
+                            <Rocket className="w-5 h-5 mr-2" /> Join New Room
                         </button>
                     )}
+
+                    {/* Optional accent bar */}
+                    {/* <div className="h-1 w-20 bg-cyberblue mx-auto rounded-full mt-10 animate-pulse"></div> */}
                 </div>
             </div>
+
+            {/* Metadata display */}
+            <div className="absolute bottom-4 right-6 text-[0.7rem] text-cyberdark/60 font-mono bg-white/40 backdrop-blur-sm px-3 py-1 rounded-md border border-white/30 shadow-sm">
+                SYSTEM · EN · {localTime}
+            </div>
+
         </div>
     );
 }

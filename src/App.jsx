@@ -29,78 +29,13 @@ function App() {
         <SidebarNavbar
           setPage={setPage}
           currentPage={page}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
         />
       )}
 
-      {/* <div
-        className="fixed inset-0 z-0"
-        style={{
-          background: 'linear-gradient(135deg, #e0e7ff, #f3f4f6, #c7d2fe)',
-          backgroundSize: '400% 400%',
-          animation: 'gradientBackground 18s ease infinite'
-        }}
-      ></div> */}
 
-      {/* {Array.from({ length: 35 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full backdrop-blur-sm pointer-events-none z-0"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.7)',
-            width: `${6 + Math.random() * 10}px`,
-            height: `${6 + Math.random() * 10}px`,
-            left: `${Math.random() * 100}%`,
-            top: `-${Math.random() * 20}px`,
-            animation: `snowfall ${12 + Math.random() * 10}s linear infinite`,
-            animationDelay: `${Math.random() * 8}s`,
-            filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.5))'
-          }}
-        />
-      ))}
-
-      <style>
-        {`
-          @keyframes gradientBackground {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-
-          @keyframes float {
-            0% { transform: translateY(0px); opacity: 0.6; }
-            50% { transform: translateY(-20px); opacity: 1; }
-            100% { transform: translateY(0px); opacity: 0.6; }
-          }
-        `}
-      </style>
-
-      <style>
-        {`
-    @keyframes snowfall {
-      0% {
-        transform: translateY(0px) translateX(0px);
-        opacity: 0.8;
-      }
-      100% {
-        transform: translateY(100vh) translateX(20px);
-        opacity: 0;
-      }
-    }
-  `}
-      </style> */}
+      <main className={`min-h-screen w-full bg-cyber-gradient transition-all duration-300 ${showNavbar ? 'pt-20' : ''}`}>
 
 
-      <main
-        className={
-          showNavbar
-            ? `transition-all duration-300 ${collapsed ? 'md:pl-20' : 'md:pl-64'}`
-            : ''
-        }
-      >
         {page === 'landing' && <LandingPage setPage={setPage} />}
         {page === 'create' && <CreateRoom setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}
         {page === 'myrooms' && <MyRooms setPage={setPage} setActiveRoomAddress={setActiveRoomAddress} />}

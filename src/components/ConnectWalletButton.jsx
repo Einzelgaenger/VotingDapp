@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ClipboardCheck, ClipboardCopy, UserCheck, ShieldCheck, User, Crown } from 'lucide-react';
+import { ClipboardCheck, ClipboardCopy, User, ShieldCheck, Crown } from 'lucide-react';
 import { useWallet } from '../contexts/WalletContext';
 
 export default function ConnectWalletButton() {
@@ -14,28 +14,22 @@ export default function ConnectWalletButton() {
     };
 
     const roleIcon = {
-        creator: <Crown className="w-5 h-5 text-green-600" />,
-        superadmin: <ShieldCheck className="w-5 h-5 text-blue-600" />,
-        user: <User className="w-5 h-5 text-gray-500" />,
-    };
-
-    const iconOnly = {
-        creator: <Crown className="w-4 h-4 text-green-700" />,
-        superadmin: <ShieldCheck className="w-4 h-4 text-blue-700" />,
-        user: <User className="w-4 h-4 text-gray-600" />,
+        creator: <Crown className="w-4 h-4 text-green-400" />,
+        superadmin: <ShieldCheck className="w-4 h-4 text-blue-400" />,
+        user: <User className="w-4 h-4 text-gray-400" />,
     };
 
     const roleColor = {
-        creator: 'bg-green-100',
-        superadmin: 'bg-blue-100',
-        user: 'bg-gray-200',
+        creator: 'from-green-100 to-white',
+        superadmin: 'from-blue-100 to-white',
+        user: 'from-gray-200 to-white',
     };
 
     if (!account) {
         return (
             <button
                 onClick={connectWallet}
-                className="fixed top-4 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-semibold shadow"
+                className="bg-cyberblue hover:brightness-110 text-white px-4 py-2 rounded-full font-semibold shadow"
             >
                 Connect Wallet
             </button>
@@ -44,23 +38,18 @@ export default function ConnectWalletButton() {
 
     return (
         <div
-            className={`fixed top-4 right-4 z-50 group transition-all`}
+            className="group relative"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <div className={`flex items-center ${roleColor[role]} rounded-full shadow px-3 py-2 transition-all duration-300 ease-in-out ${hovered ? 'w-auto' : 'w-10'} overflow-hidden relative`}>
-                <div className={`flex-shrink-0 w-4.5 h-5 flex items-center justify-center`}>
-                    {iconOnly[role]}
-                </div>
-
-                <div className={`ml-2 whitespace-nowrap transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'} flex items-center gap-2`}>
-                    <span className="text-sm font-medium text-gray-800">
-                        {account.slice(0, 6)}...{account.slice(-4)}
-                    </span>
-                    <button onClick={copyToClipboard} className="hover:text-indigo-500">
+            <div className={`flex items-center bg-white/30 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.1)] transition-all`}>
+                <div className="flex items-center gap-2 text-xs font-mono text-cyberdark/80">
+                    {roleIcon[role]}
+                    <span>{account.slice(0, 6)}...{account.slice(-4)}</span>
+                    <button onClick={copyToClipboard} className="hover:text-cyberblue">
                         {copied ? <ClipboardCheck className="w-4 h-4" /> : <ClipboardCopy className="w-4 h-4" />}
                     </button>
-                    <span className="text-xs bg-white border px-2 py-0.5 rounded-full text-gray-700 font-semibold">
+                    <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[10px] font-bold text-gray-700">
                         {role.toUpperCase()}
                     </span>
                 </div>
