@@ -16,3 +16,106 @@ div.__toast-container {
   margin-top: 50px !important;
   /* match navbar height */
 }
+
+@layer components {
+
+  /* === THEME LIGHT === */
+  .theme-light body {
+    @apply bg-gradient-to-br from-white via-[#f0f7ff] to-[#e6f0ff];
+  }
+
+  .theme-light .card {
+    @apply bg-white/80 backdrop-blur-sm border border-blue-100/50 rounded-3xl;
+  }
+
+  .theme-light .input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-blue-100 bg-white text-cyberdark placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-cyberblue/80 focus:outline-none;
+  }
+
+  .theme-light .btn-primary {
+    @apply w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-cyberblue hover:brightness-110 hover:shadow-[0_0_10px_#00f0ff55] rounded-full transition-all shadow-md active:scale-95;
+  }
+
+  .theme-light .metadata {
+    @apply text-[0.7rem] text-cyberdark/60 font-mono bg-white/40 backdrop-blur-sm px-3 py-1 rounded-md border border-white/30 shadow-sm;
+  }
+
+  .theme-light .navbar {
+    @apply bg-white/20 backdrop-blur-lg border-b border-white/20;
+  }
+
+  .theme-light .icon {
+    @apply text-cyberblue;
+  }
+
+  .theme-light .ring-focus {
+    @apply ring-cyberblue/80 focus:ring-2;
+  }
+
+  .theme-light {
+    @apply text-cyberdark;
+  }
+
+  /* === THEME DARK === */
+  .theme-dark body {
+    @apply bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900;
+  }
+
+  .theme-dark .card {
+    @apply bg-[#0f172a] border border-white/10 text-white;
+  }
+
+  .theme-dark .input {
+    @apply bg-[#1e293b] text-white border-white/20 placeholder-gray-400 focus:ring-2 focus:ring-cyberblue;
+  }
+
+  .theme-dark .btn-primary {
+    @apply bg-cyberblue text-white hover:brightness-125;
+  }
+
+  .theme-dark .navbar {
+    @apply bg-gray-800/80 backdrop-blur-lg border-b border-gray-700 shadow-md;
+  }
+
+  .theme-dark .icon {
+    @apply text-cyberblue;
+  }
+
+  .theme-dark .ring-focus {
+    @apply ring-cyberblue focus:ring-2;
+  }
+
+  /* === THEME NOIR === */
+  .theme-noir body {
+    @apply bg-gradient-to-br from-[#0f0f1f] via-[#1a1a30] to-[#101020];
+  }
+
+  .theme-noir .card {
+    @apply bg-[#1a1a30] border border-white/10 text-white;
+  }
+
+  .theme-noir .input {
+    @apply bg-[#202030] text-white border-white/20 placeholder-gray-300 focus:ring-2 focus:ring-purple-400;
+  }
+
+  .theme-noir .btn-primary {
+    @apply bg-purple-500 text-white hover:brightness-125;
+  }
+
+  .theme-noir .navbar {
+    @apply bg-[#1a1a30]/70 backdrop-blur-lg border-b border-purple-500/20 shadow-md;
+  }
+
+  .theme-noir .icon {
+    @apply text-purple-400;
+  }
+
+  .theme-noir .ring-focus {
+    @apply ring-purple-400 focus:ring-2;
+  }
+
+  .theme-dark,
+  .theme-noir {
+    @apply text-white;
+  }
+}
