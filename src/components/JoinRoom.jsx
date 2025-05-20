@@ -76,7 +76,7 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
                 {/* Heading */}
                 <div className="flex items-center justify-center gap-3 mb-6">
                     <UserCheck className="w-8 h-8 text-cyberblue/80" />
-                    <h2 className="text-3xl md:text-4xl font-exo font-semibold text-cyberdark tracking-wide">
+                    <h2 className="text-3xl md:text-4xl font-exo font-semibold  tracking-wide">
                         Join Voting Room
                     </h2>
                 </div>
@@ -112,7 +112,7 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
                             onClick={() => setPage('home')}
                             className="text-sm text-cyberdark hover:underline inline-flex items-center gap-1"
                         >
-                            <ArrowLeft className="w-4 h-4" />
+                            <ArrowLeft className="w-4 h-4 icon" />
                             Back to Home
                         </button>
                     </div>

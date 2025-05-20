@@ -11,7 +11,9 @@ export default function MainLayout({ children }) {
     };
 
     return (
-        <div className={`min-h-screen text-white font-sans transition-all duration-500 ${theme} ${bgMap[theme]}`}>
+        <div
+            className={`min-h-screen font-sans transition-all duration-500 ${theme} ${bgMap[theme]}`}
+        >
             {children}
         </div>
     );

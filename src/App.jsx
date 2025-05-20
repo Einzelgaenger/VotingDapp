@@ -34,7 +34,7 @@ function App() {
       )}
 
 
-      <main className={`min-h-screen w-full bg-cyber-gradient transition-all duration-300 ${showNavbar ? 'pt-20' : ''}`}>
+      <main className={`min-h-screen w-full  transition-all duration-300 ${showNavbar ? 'pt-20' : ''}`}>
 
 
         {page === 'landing' && <LandingPage setPage={setPage} />}
