@@ -1,5 +1,4 @@
-// ✅ AdminPanel.jsx - Clean UI + Valid Heroicons + Manual Refresh
-
+// AdminPanel.jsx - Final Toast Promise + Alert Popup + Validation
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
@@ -12,8 +11,8 @@ import {
     ArrowPathIcon,
     ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
-import { Settings2 } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
+import { Settings2, RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ROOM_FACTORY_ADDRESS = "0x5933899C50ab5DB1bCd94B5a8e60aD34f26e06f3";
 const ROOMS_PER_PAGE = 10;
@@ -84,7 +83,11 @@ export default function AdminPanel({ setPage }) {
             const roomContract = new ethers.Contract(roomAddress, VotingRoomAbi, signer);
             const isActive = await roomContract.isActive();
             if (isActive) {
-                const tx = await roomContract.deactivateRoom();
+                const tx = await toast.promise(roomContract.deactivateRoom(), {
+                    loading: 'Deactivating room...',
+                    success: 'Room deactivated!',
+                    error: 'Failed to deactivate room.'
+                });
                 await tx.wait();
             }
             const deleted = JSON.parse(localStorage.getItem('deletedRooms') || '[]');
@@ -93,10 +96,8 @@ export default function AdminPanel({ setPage }) {
                 localStorage.setItem('deletedRooms', JSON.stringify(deleted));
             }
             await fetchRooms();
-            alert('Room deactivated and removed successfully!');
         } catch (err) {
             console.error('Failed to deactivate and remove room:', err);
-            alert('Failed to deactivate/remove room.');
         } finally {
             setLoading(false);
         }
@@ -104,19 +105,41 @@ export default function AdminPanel({ setPage }) {
 
     const handleTx = async (method, ...args) => {
         try {
+            if (method === 'addSuperAdmin') {
+                const alreadyAdded = superAdmins.map(addr => addr.toLowerCase()).includes(args[0].toLowerCase());
+                if (alreadyAdded) {
+                    toast.error('Address is already a SuperAdmin!');
+                    return;
+                }
+            }
+
             setLoading(true);
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const factory = new ethers.Contract(ROOM_FACTORY_ADDRESS, RoomFactoryAbi, signer);
-            const tx = await factory[method](...args);
-            await tx.wait();
-            alert(`${method} success!`);
+
+            const tx = await toast.promise(
+                (async () => {
+                    const transaction = await factory[method](...args);
+                    await transaction.wait();
+                })(),
+                {
+                    loading: `${method} pending...`,
+                    success: `${method} success!`,
+                    error: `Failed to ${method}`,
+                }
+            );
+
             await fetchRooms();
             await fetchSuperAdmins();
             clearInputs();
+
+            if (method === 'transferCreator') {
+                toast.success('Creator transferred!');
+                toast('Ownership transferred. You may no longer access Factory tab.', { icon: '⚠️' });
+            }
         } catch (err) {
             console.error(`Error during ${method}:`, err);
-            alert(`Failed to ${method}`);
         } finally {
             setLoading(false);
         }
@@ -157,16 +180,37 @@ export default function AdminPanel({ setPage }) {
             </h1>
 
             <div className="flex flex-wrap gap-4 mb-6">
-                <button className={`px-4 py-2 rounded ${activeTab === 'room' ? 'bg-indigo-500 text-white' : 'bg-gray-100'}`} onClick={() => setActiveTab('room')}>
+                <button
+                    className={`relative inline-flex items-center justify-center px-5 py-2 font-semibold rounded-md border shadow-md transition duration-300 ease-in-out
+    ${activeTab === 'room'
+                            ? 'text-white bg-gradient-to-b from-indigo-500 to-indigo-600 border-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800'
+                            : 'text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 border-gray-300 hover:from-gray-200 hover:to-gray-300 active:to-gray-400'}`}
+                    onClick={() => setActiveTab('room')}
+                >
                     Room Management
                 </button>
-                <button className={`px-4 py-2 rounded ${activeTab === 'admin' ? 'bg-indigo-500 text-white' : 'bg-gray-100'}`} onClick={() => setActiveTab('admin')}>
+
+                <button
+                    className={`relative inline-flex items-center justify-center px-5 py-2 font-semibold rounded-md border shadow-md transition duration-300 ease-in-out
+    ${activeTab === 'admin'
+                            ? 'text-white bg-gradient-to-b from-indigo-500 to-indigo-600 border-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800'
+                            : 'text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 border-gray-300 hover:from-gray-200 hover:to-gray-300 active:to-gray-400'}`}
+                    onClick={() => setActiveTab('admin')}
+                >
                     SuperAdmin Management
                 </button>
+
                 {role === 'creator' && (
-                    <button className={`px-4 py-2 rounded ${activeTab === 'factory' ? 'bg-indigo-500 text-white' : 'bg-gray-100'}`} onClick={() => setActiveTab('factory')}>
+                    <button
+                        className={`relative inline-flex items-center justify-center px-5 py-2 font-semibold rounded-md border shadow-md transition duration-300 ease-in-out
+    ${activeTab === 'factory'
+                                ? 'text-white bg-gradient-to-b from-indigo-500 to-indigo-600 border-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800'
+                                : 'text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 border-gray-300 hover:from-gray-200 hover:to-gray-300 active:to-gray-400'}`}
+                        onClick={() => setActiveTab('factory')}
+                    >
                         Factory Management
                     </button>
+
                 )}
                 <button
                     onClick={async () => {
@@ -174,18 +218,31 @@ export default function AdminPanel({ setPage }) {
                         await Promise.all([fetchRooms(), fetchSuperAdmins()]);
                         setLoading(false);
                     }}
-                    className="ml-auto flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
+                    className="relative inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md transition duration-300 ease-in-out disabled:opacity-50"
                     disabled={loading}
                 >
-                    {loading ? (
+                    <RefreshCw className={`w-5 h-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                    Refresh
+                    {/* {loading ? (
                         <RefreshCw className="animate-spin w-5 h-5" />
                     ) : (
                         <>
-                            <RefreshCw className="w-5 h-5" />
+                            <RefreshCw className={`w-5 h-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
                             Refresh
                         </>
-                    )}
+                    )} */}
                 </button>
+
+
+                {/* <button
+                    onClick={fetchRooms}
+                    disabled={loading}
+                    className="relative inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md transition duration-300 ease-in-out disabled:opacity-50"
+                >
+                    <RefreshCw className={`w-5 h-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                    Refresh
+                </button> */}
+
             </div>
 
             {activeTab === 'room' && (
@@ -213,7 +270,7 @@ export default function AdminPanel({ setPage }) {
                                 <div><strong>Created by:</strong> {room.createdBy}</div>
                                 <button
                                     onClick={() => handleDeactivateAndRemove(room.roomAddress)}
-                                    className="mt-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                    className="mt-2 inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-sm"
                                     disabled={loading}
                                 >
                                     Deactivate and Remove Room
@@ -246,7 +303,8 @@ export default function AdminPanel({ setPage }) {
                                 onChange={(e) => setAddSuperAdminAddress(e.target.value)}
                                 className="flex-1 px-4 py-2 border rounded"
                             />
-                            <button onClick={() => handleTx('addSuperAdmin', addSuperAdminAddress)} disabled={loading} className="bg-indigo-500 text-white px-4 rounded">
+                            <button onClick={() => handleTx('addSuperAdmin', addSuperAdminAddress)} disabled={loading} className="inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md text-sm"
+                            >
                                 Add
                             </button>
                         </div>
@@ -267,7 +325,8 @@ export default function AdminPanel({ setPage }) {
                                 {role === 'creator' && !isCreator && (
                                     <button
                                         onClick={() => handleTx('removeSuperAdmin', address)}
-                                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                                        className="inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-sm"
+
                                         disabled={loading}
                                     >
                                         Remove
@@ -294,19 +353,26 @@ export default function AdminPanel({ setPage }) {
                             onChange={(e) => setNewCreator(e.target.value)}
                             className="flex-1 px-4 py-2 border rounded"
                         />
-                        <button onClick={() => handleTx('transferCreator', newCreator)} disabled={loading} className="bg-indigo-500 text-white px-4 rounded">
+                        <button onClick={() => handleTx('transferCreator', newCreator)} disabled={loading} className="inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md text-sm"
+                        >
                             Transfer
                         </button>
                     </div>
 
-                    <button
+                    <button onClick={handleHardReset} className="gap-2 inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-sm">
+                        <ExclamationTriangleIcon className="w-5 h-5" />
+                        Hard Reset Factory
+                    </button>
+
+
+                    {/* <button
                         onClick={handleHardReset}
                         className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-2"
                         disabled={loading}
                     >
                         <ExclamationTriangleIcon className="w-5 h-5" />
                         Hard Reset Factory
-                    </button>
+                    </button> */}
                 </>
             )}
         </div>
