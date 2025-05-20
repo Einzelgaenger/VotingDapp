@@ -4,6 +4,7 @@ import { ClipboardList, Plus, LogIn, Settings2, Menu, X } from 'lucide-react';
 import { useWallet } from '../contexts/WalletContext';
 import ConnectWalletButton from './ConnectWalletButton';
 import Logo from '../assets/SecureVote2.png';
+import { useEffect, useRef } from 'react';
 
 const navItems = [
     { label: 'Create', icon: <Plus size={18} />, page: 'create' },

@@ -1,27 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Contract, isAddress, BrowserProvider } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
 import { LogIn, Loader2, ArrowLeft, UserCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function JoinRoom({ setPage, setActiveRoomAddress }) {
     const { account } = useWallet();
     const [roomAddress, setRoomAddress] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [localTime, setLocalTime] = useState('');
+
+    useEffect(() => {
+        const updateTime = () => {
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Jakarta'
+            });
+            setLocalTime(time);
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleJoinRoom = async (e) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
+        if (!isAddress(roomAddress)) {
+            toast.error('Invalid room address.');
+            return;
+        }
 
         try {
-            if (!isAddress(roomAddress)) {
-                setError('Invalid room address.');
-                setLoading(false);
-                return;
-            }
-
+            setLoading(true);
             const provider = new BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const contract = new Contract(roomAddress, VotingRoomAbi, signer);
@@ -40,138 +54,70 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
                 setActiveRoomAddress(roomAddress);
                 setPage('roominteract');
             } else {
-                setError("You're not authorized to join this room.");
+                toast.error("You're not authorized to join this room.");
             }
         } catch (err) {
             console.error(err);
-            setError('Failed to join the room.');
+            toast.error("Failed to join the room.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <>
-            <style>
-                {`
-          @keyframes gradientBackground {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
+        <div className="min-h-[calc(100vh-72px)] pt-[72px] flex justify-center items-start">
 
-          @keyframes float {
-            0% { transform: translateY(0px); opacity: 0.6; }
-            50% { transform: translateY(-20px); opacity: 1; }
-            100% { transform: translateY(0px); opacity: 0.6; }
-          }
-        `}
-            </style>
-            <style>
-                {`
-    @keyframes snowfall {
-      0% {
-        transform: translateY(0px) translateX(0px);
-        opacity: 0.8;
-      }
-      100% {
-        transform: translateY(100vh) translateX(20px);
-        opacity: 0;
-      }
-    }
-  `}
-            </style>
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-100/50 rounded-3xl shadow-[0_8px_30px_rgba(0,240,255,0.07)] max-w-xl w-full px-6 py-8 md:px-10 md:py-12 transition-all">
 
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <UserCheck className="w-8 h-8 text-cyberblue/80" />
+                    <h2 className="text-3xl md:text-4xl font-exo font-semibold text-cyberdark tracking-wide">
+                        Join Voting Room
+                    </h2>
+                </div>
 
-            <div
-                className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden"
-                style={{
-                    background: 'linear-gradient(135deg, #e0e7ff, #f3f4f6, #c7d2fe)',
-                    backgroundSize: '400% 400%',
-                    animation: 'gradientBackground 18s ease infinite'
-                }}
-            >
-                {/* Floating Particles */}
-                {Array.from({ length: 35 }).map((_, i) => {
-                    const size = 6 + Math.random() * 12; // lebih besar
-                    const left = Math.random() * 100;
-                    const duration = 12 + Math.random() * 10;
-                    const delay = Math.random() * 10;
-                    const blur = Math.random() < 0.5 ? 'backdrop-blur-md' : 'backdrop-blur-sm';
-
-                    return (
-                        <div
-                            key={i}
-                            className={`absolute rounded-full ${blur} pointer-events-none`}
-                            style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                width: `${size}px`,
-                                height: `${size}px`,
-                                left: `${left}%`,
-                                top: `-${size}px`,
-                                animation: `snowfall ${duration}s linear infinite`,
-                                animationDelay: `${delay}s`,
-                                opacity: 0.7,
-                                filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.6))'
-                            }}
-                        />
-                    );
-                })}
-
-
-
-                {/* Glass Card */}
-                <div className="relative z-10 backdrop-blur-md bg-white/70 rounded-xl shadow-lg p-8 max-w-md w-full">
-                    <div className="flex justify-center mb-4">
-                        <UserCheck className="w-12 h-12 text-indigo-500" />
-                    </div>
-                    <div className="text-center mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 flex justify-center items-center gap-2">
-                            <LogIn className="w-5 h-5 text-indigo-500" />
-                            Join Voting Room
-                        </h2>
-                        <p className="text-sm text-gray-500 mt-1">Enter a valid room address to participate</p>
-                    </div>
-
-                    <form onSubmit={handleJoinRoom} className="space-y-4">
+                <form onSubmit={handleJoinRoom} className="space-y-6 font-exo text-cyberdark">
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium">Room Address</label>
                         <input
                             type="text"
-                            placeholder="Enter Voting Room Address"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition"
                             value={roomAddress}
                             onChange={(e) => setRoomAddress(e.target.value)}
-                            required
+                            placeholder="Enter Voting Room Address"
+                            className="w-full px-4 py-2.5 rounded-lg border border-blue-100 bg-white text-cyberdark placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-cyberblue/80 focus:outline-none"
                         />
+                    </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800 border border-indigo-600 rounded-md shadow-md"
-                        >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                            Join Room
-                        </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-cyberblue hover:brightness-110 hover:shadow-[0_0_10px_#00f0ff55] rounded-full transition-all shadow-md active:scale-95"
+                    >
+                        {loading && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+                        Join Room
+                    </button>
 
-                        {error && (
-                            <p className="text-red-600 text-sm text-center">{error}</p>
-                        )}
-                    </form>
-
-                    <p className="text-xs text-gray-500 mt-3 text-center">
-                        Tip: You can only join rooms where you're already registered as a voter or admin.
+                    <p className="text-xs text-gray-500 text-center">
+                        Only authorized voters or admins can join this room.
                     </p>
 
-                    <div className="mt-6 text-center">
+                    <div className="pt-2 text-center">
                         <button
-                            onClick={() => setPage('create')}
-                            className="text-sm text-gray-600 hover:underline inline-flex items-center gap-1"
+                            type="button"
+                            onClick={() => setPage('home')}
+                            className="text-sm text-cyberdark hover:underline inline-flex items-center gap-1"
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Back to Home
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
-        </>
+
+            {/* Metadata */}
+            <div className="absolute bottom-4 right-6 text-[0.7rem] text-cyberdark/60 font-mono bg-white/40 backdrop-blur-sm px-3 py-1 rounded-md border border-white/30 shadow-sm">
+                SYSTEM · EN · {localTime}
+            </div>
+        </div>
     );
 }
