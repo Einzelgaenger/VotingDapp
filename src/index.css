@@ -56,6 +56,21 @@ div.__toast-container {
     @apply text-cyberdark;
   }
 
+  .theme-light .dropdown-bg {
+    @apply bg-white/20 backdrop-blur-lg border-t border-white/10 shadow-md;
+  }
+
+  .theme-light .mobile-toggle-icon {
+    @apply text-cyberdark;
+  }
+
+  .theme-light .dropdown-bg {
+    @apply bg-white backdrop-blur-md border-t border-white/10 shadow-md;
+  }
+
+
+
+
   /* === THEME DARK === */
   .theme-dark body {
     @apply bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a];
@@ -92,6 +107,21 @@ div.__toast-container {
   .theme-dark {
     @apply text-white;
   }
+
+  .theme-dark .dropdown-bg {
+    @apply bg-white/10 backdrop-blur-lg border-t border-white/10 shadow-md;
+  }
+
+  .theme-dark .mobile-toggle-icon {
+    @apply text-white;
+  }
+
+  .theme-dark .dropdown-bg {
+    @apply bg-[#1e293b] backdrop-blur-md border-t border-white/10 shadow-md;
+  }
+
+
+
 
 
   /* === THEME NOIR === */
@@ -130,6 +160,19 @@ div.__toast-container {
   .theme-noir {
     @apply text-white;
   }
+
+  .theme-noir .dropdown-bg {
+    @apply bg-white/5 backdrop-blur-lg border-t border-white/10 shadow-md;
+  }
+
+  .theme-noir .mobile-toggle-icon {
+    @apply text-white;
+  }
+
+  .theme-noir .dropdown-bg {
+    @apply bg-[#191825] backdrop-blur-md border-t border-white/10 shadow-md;
+  }
+
 
 
 }
