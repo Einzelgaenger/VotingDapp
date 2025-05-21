@@ -68,6 +68,18 @@ div.__toast-container {
     @apply bg-white backdrop-blur-md border-t border-white/10 shadow-md;
   }
 
+  .theme-light .wallet-box {
+    @apply bg-white/30 backdrop-blur-md border border-white/20 shadow-sm rounded-full px-4 py-2;
+  }
+
+  .theme-light .wallet-text {
+    @apply text-cyberdark/80;
+  }
+
+  .theme-light .role-badge {
+    @apply bg-white border border-gray-200 text-gray-700;
+  }
+
 
 
 
@@ -118,6 +130,10 @@ div.__toast-container {
 
   .theme-dark .dropdown-bg {
     @apply bg-[#1e293b] backdrop-blur-md border-t border-white/10 shadow-md;
+  }
+
+  .theme-dark .wallet-box {
+    @apply bg-white/10 backdrop-blur-md border border-white/10 shadow-sm rounded-full px-4 py-2;
   }
 
 
@@ -173,6 +189,40 @@ div.__toast-container {
     @apply bg-[#191825] backdrop-blur-md border-t border-white/10 shadow-md;
   }
 
+  .theme-noir .wallet-box {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-sm rounded-full px-4 py-2;
+  }
 
+  .theme-dark .wallet-text,
+  .theme-noir .wallet-text {
+    @apply text-white/80;
+  }
+
+  .theme-dark .role-badge,
+  .theme-noir .role-badge {
+    @apply bg-white/10 border border-white/20 text-white/70;
+  }
+
+
+  /* === ELSE === */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-cyberblue hover:brightness-110 border border-cyberblue rounded-md shadow-md transition text-sm active:scale-95;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-sm transition;
+  }
+
+  .btn-gray {
+    @apply inline-flex items-center justify-center px-4 py-2 font-semibold text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 active:to-gray-400 border border-gray-300 rounded-md shadow-md text-sm transition disabled:opacity-50;
+  }
+
+  .btn-tab-active-indigo {
+    @apply text-white bg-gradient-to-b from-indigo-500 to-indigo-600 border-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:to-indigo-800;
+  }
+
+  .btn-tab-active-green {
+    @apply text-white bg-gradient-to-b from-green-500 to-green-600 border-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800;
+  }
 
 }

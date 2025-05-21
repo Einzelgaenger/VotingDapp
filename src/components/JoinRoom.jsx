@@ -70,47 +70,43 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
 
     return (
         <div className="min-h-[calc(100vh-72px)] pt-10 md:pt-16 px-4 flex justify-center items-start md:items-center relative">
-
             {/* Card */}
             <div className="card max-w-xl w-full px-6 py-8 md:px-10 md:py-12 transition-all">
                 {/* Heading */}
                 <div className="flex items-center justify-center gap-3 mb-6">
-                    <UserCheck className="w-8 h-8 text-cyberblue/80" />
-                    <h2 className="text-3xl md:text-4xl font-exo font-semibold  tracking-wide">
-                        Join Voting Room
+                    <UserCheck className="w-8 h-8 icon" />
+                    <h2 className="text-3xl md:text-4xl font-exo font-semibold tracking-wide">
+                        Join a Voting Session
                     </h2>
                 </div>
 
                 {/* Form */}
-                <form
-                    onSubmit={handleJoinRoom}
-                    className="space-y-8 font-exo text-cyberdark"
-                >
+                <form onSubmit={handleJoinRoom} className="space-y-8 font-exo">
                     <div className="space-y-1">
-                        <label className="block text-sm font-medium">Room Address</label>
+                        <label className="block text-sm font-medium">Session Address</label>
                         <input
                             type="text"
                             value={roomAddress}
                             onChange={(e) => setRoomAddress(e.target.value)}
-                            placeholder="Enter Voting Room Address"
+                            placeholder="Enter a valid room address"
                             className="input"
                         />
                     </div>
 
                     <button type="submit" disabled={loading} className="btn-primary">
-                        {loading && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
-                        Join Room
+                        {loading && <Loader2 className="w-5 h-5 mr-2 animate-spin icon" />}
+                        Join Session
                     </button>
 
-                    <p className="text-xs text-gray-500 text-center">
-                        Only authorized voters or admins can join this room.
+                    <p className="text-xs text-center opacity-60">
+                        Only authorized participants may access this session.
                     </p>
 
                     <div className="pt-2 text-center">
                         <button
                             type="button"
                             onClick={() => setPage('home')}
-                            className="text-sm text-cyberdark hover:underline inline-flex items-center gap-1"
+                            className="text-sm hover:underline inline-flex items-center gap-1 text-cyberdark dark:text-white/80"
                         >
                             <ArrowLeft className="w-4 h-4 icon" />
                             Back to Home

@@ -19,17 +19,11 @@ export default function ConnectWalletButton() {
         user: <User className="w-4 h-4 text-gray-400" />,
     };
 
-    const roleColor = {
-        creator: 'from-green-100 to-white',
-        superadmin: 'from-blue-100 to-white',
-        user: 'from-gray-200 to-white',
-    };
-
     if (!account) {
         return (
             <button
                 onClick={connectWallet}
-                className="bg-cyberblue hover:brightness-110 text-white px-4 py-2 rounded-full font-semibold shadow"
+                className="bg-cyberblue hover:brightness-110 text-white px-4 py-2 rounded-full font-semibold shadow transition active:scale-95"
             >
                 Connect Wallet
             </button>
@@ -42,15 +36,15 @@ export default function ConnectWalletButton() {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <div className={`flex items-center bg-white/30 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.1)] transition-all`}>
-                <div className="flex items-center gap-2 text-xs font-mono text-cyberdark/80">
+            <div className="wallet-box flex items-center px-4 py-2 rounded-full transition-all">
+                <div className="flex items-center gap-2 text-xs font-mono wallet-text">
                     {roleIcon[role]}
                     <span>{account.slice(0, 6)}...{account.slice(-4)}</span>
                     <button onClick={copyToClipboard} className="hover:text-cyberblue">
                         {copied ? <ClipboardCheck className="w-4 h-4" /> : <ClipboardCopy className="w-4 h-4" />}
                     </button>
-                    <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[10px] font-bold text-gray-700">
-                        {role.toUpperCase()}
+                    <span className="role-badge px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                        {role}
                     </span>
                 </div>
             </div>
