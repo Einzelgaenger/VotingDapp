@@ -11,9 +11,8 @@ export default function MainLayout({ children }) {
     // };
 
     return (
-        <div
-            className={`min-h-screen font-sans transition-all duration-500 ${theme}`}
-        >
+        <div className={`group min-h-screen font-sans transition-all duration-500 ${theme}`}>
+
             {children}
         </div>
     );

@@ -28,8 +28,9 @@ export default function SidebarNavbar({ setPage, currentPage }) {
                 whileTap={{ scale: 0.92 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full relative overflow-hidden transition-all duration-300
           ${isActive
-                        ? 'bg-cyberblue/20 text-cyberblue shadow-inner'
-                        : 'hover:bg-white/30 hover:text-cyberblue'}`}
+                        ? 'bg-cyberblue/20 shadow-inner text-cyberblue group-[.theme-light]:text-[#1e3a8a]'
+                        : 'hover:bg-white/30 hover:text-cyberblue group-[.theme-light]:hover:text-[#1e3a8a]'}
+`}
             >
                 {item.icon}
                 <span>{item.label}</span>
@@ -68,9 +69,10 @@ export default function SidebarNavbar({ setPage, currentPage }) {
                 onClick={() => setPage('home')}
             >
                 <img src={Logo} alt="logo" className="w-9 h-9" />
-                <h1 className="text-cyberblue text-xl font-exo font-bold tracking-wide group-hover:brightness-125 transition hidden sm:block">
+                <h1 className="text-cyberblue group-[.theme-light]:text-[#1e3a8a] text-xl font-exo font-bold tracking-wide group-hover:brightness-110 transition hidden sm:block">
                     SecureVote
                 </h1>
+
             </div>
 
             {/* Desktop Nav */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
-import { Loader2, ClipboardList, Rocket, CheckCircle } from 'lucide-react';
+import { Loader2, Plus, Rocket, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function CreateRoom({ setPage, setActiveRoomAddress }) {
@@ -54,7 +54,7 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
             <div className="section-container flex-grow flex items-center justify-center">
                 <div className="card max-w-xl w-full px-6 py-8 md:px-10 md:py-12">
                     <div className="flex items-center justify-center gap-3 mb-6">
-                        <ClipboardList className="w-8 h-8 icon" />
+                        <Plus className="w-8 h-8 icon" />
                         <h2 className="text-3xl md:text-4xl font-exo font-semibold tracking-wide">
                             Create Voting Room
                         </h2>
