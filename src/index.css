@@ -9,6 +9,7 @@
 body {
   font-family: 'Inter', sans-serif;
   scroll-behavior: smooth;
+  transition: background 0.4s ease-in-out, color 0.3s ease;
 }
 
 /* Tailwind default z-50 navbar + toast workaround */
@@ -21,11 +22,17 @@ div.__toast-container {
 
   /* === THEME LIGHT === */
   .theme-light body {
-    @apply bg-gradient-to-br from-white via-[#f0f7ff] to-[#e6f0ff];
+    background: linear-gradient(to bottom right,
+        #f1faff 0%,
+        #d3eafd 50%,
+        #a8dcff 100%);
+    color: #0a1f33;
+    /* cyberdark */
   }
 
+
   .theme-light .card {
-    @apply bg-white/80 backdrop-blur-sm border border-blue-100/50 rounded-3xl;
+    @apply bg-white/90 border border-blue-100 text-cyberdark shadow-md hover:shadow-lg;
   }
 
   .theme-light .input {
@@ -33,107 +40,60 @@ div.__toast-container {
   }
 
   .theme-light .btn-primary {
-    @apply w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-cyberblue hover:brightness-110 hover:shadow-[0_0_10px_#00f0ff55] rounded-full transition-all shadow-md active:scale-95;
+    @apply bg-cyberblue text-white hover:brightness-110 hover:shadow-[0_0_10px_#00f0ff55];
   }
 
-  .theme-light .metadata {
-    @apply text-[0.7rem] text-cyberdark/60 font-mono bg-white/40 backdrop-blur-sm px-3 py-1 rounded-md border border-white/30 shadow-sm;
+  .theme-light .btn-danger {
+    @apply bg-red-500 text-white hover:shadow-[0_0_10px_#ef444455];
   }
 
-  .theme-light .navbar {
-    @apply bg-white/20 backdrop-blur-lg border-b border-white/20;
-  }
-
-  .theme-light .icon {
-    @apply text-cyberblue;
-  }
-
-  .theme-light .ring-focus {
-    @apply ring-cyberblue/80 focus:ring-2;
-  }
-
-  .theme-light {
-    @apply text-cyberdark;
-  }
-
-  .theme-light .dropdown-bg {
-    @apply bg-white/20 backdrop-blur-lg border-t border-white/10 shadow-md;
-  }
-
-  .theme-light .mobile-toggle-icon {
-    @apply text-cyberdark;
-  }
-
-  .theme-light .dropdown-bg {
-    @apply bg-white backdrop-blur-md border-t border-white/10 shadow-md;
-  }
-
-  .theme-light .wallet-box {
-    @apply bg-white/30 backdrop-blur-md border border-white/20 shadow-sm rounded-full px-4 py-2;
-  }
-
-  .theme-light .wallet-text {
-    @apply text-cyberdark/80;
+  .theme-light .btn-gray {
+    @apply text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 active:to-gray-400 border border-gray-300;
   }
 
   .theme-light .role-badge {
     @apply bg-white border border-gray-200 text-gray-700;
   }
 
+  .theme-light .metadata {
+    @apply text-gray-500;
+  }
+
+
 
 
 
   /* === THEME DARK === */
   .theme-dark body {
-    @apply bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a];
+    background: linear-gradient(to bottom right,
+        #0f172a 0%,
+        #1e293b 50%,
+        #334155 100%);
+    color: #ffffff;
   }
 
   .theme-dark .card {
-    @apply bg-[#1e293b]/90 backdrop-blur-sm border border-white/10 rounded-3xl;
+    @apply bg-[#1e293b]/80 border border-white/10 text-white shadow-md hover:shadow-lg;
   }
 
   .theme-dark .input {
-    @apply w-full px-4 py-2.5 rounded-lg border border-white/20 bg-[#0f172a] text-white placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-cyberblue/60 focus:outline-none;
+    @apply w-full px-4 py-2.5 rounded-lg border border-gray-600 bg-[#1c1e2b] text-white placeholder-white/60 shadow-inner focus:ring-1 focus:ring-cyberblue/80 focus:outline-none;
   }
 
   .theme-dark .btn-primary {
-    @apply w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-cyberblue hover:brightness-110 hover:shadow-[0_0_10px_#00f0ff33] rounded-full transition-all shadow-md active:scale-95;
+    @apply bg-cyberblue text-white hover:shadow-[0_0_10px_#00f0ff44];
   }
 
-  .theme-dark .metadata {
-    @apply text-[0.7rem] text-white/60 font-mono bg-white/10 backdrop-blur-sm px-3 py-1 rounded-md border border-white/20 shadow-sm;
+  .theme-dark .btn-danger {
+    @apply bg-red-600 text-white hover:shadow-[0_0_10px_#ef444455];
   }
 
-  .theme-dark .navbar {
-    @apply bg-white/10 backdrop-blur-lg border-b border-white/10;
+  .theme-dark .btn-gray {
+    @apply text-white bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 active:to-gray-900 border border-gray-600;
   }
 
-  .theme-dark .icon {
-    @apply text-cyberblue;
-  }
-
-  .theme-dark .ring-focus {
-    @apply ring-cyberblue/60 focus:ring-2;
-  }
-
-  .theme-dark {
-    @apply text-white;
-  }
-
-  .theme-dark .dropdown-bg {
-    @apply bg-white/10 backdrop-blur-lg border-t border-white/10 shadow-md;
-  }
-
-  .theme-dark .mobile-toggle-icon {
-    @apply text-white;
-  }
-
-  .theme-dark .dropdown-bg {
-    @apply bg-[#1e293b] backdrop-blur-md border-t border-white/10 shadow-md;
-  }
-
-  .theme-dark .wallet-box {
-    @apply bg-white/10 backdrop-blur-md border border-white/10 shadow-sm rounded-full px-4 py-2;
+  .theme-dark .role-badge {
+    @apply bg-white/10 border border-white/10 text-white/80;
   }
 
 
@@ -142,79 +102,92 @@ div.__toast-container {
 
   /* === THEME NOIR === */
   .theme-noir body {
-    @apply bg-gradient-to-br from-[#1a1a30] via-[#191825] to-[#1a1a30];
+    background: linear-gradient(135deg,
+        #0e0e24 0%,
+        #1a1a30 50%,
+        #292945 100%);
+    color: #f4f4f4;
   }
 
   .theme-noir .card {
-    @apply bg-[#1a1a30]/90 backdrop-blur-sm border border-white/10 rounded-3xl;
+    @apply bg-[#1a1a30]/80 border border-white/10 text-white shadow-md hover:shadow-[0_0_10px_#a855f722];
   }
 
   .theme-noir .input {
-    @apply w-full px-4 py-2.5 rounded-lg border border-white/20 bg-[#0e0e1a] text-white placeholder-gray-400 shadow-inner focus:ring-1 focus:ring-purple-500/60 focus:outline-none;
+    @apply w-full px-4 py-2.5 rounded-lg border border-white/20 bg-[#161622] text-white placeholder-white/50 shadow-inner focus:ring-1 focus:ring-purple-500/80 focus:outline-none;
   }
 
   .theme-noir .btn-primary {
-    @apply w-full flex items-center justify-center px-6 py-3 font-semibold text-white bg-purple-500 hover:brightness-110 hover:shadow-[0_0_10px_#a855f733] rounded-full transition-all shadow-md active:scale-95;
+    @apply bg-purple-500 text-white hover:shadow-[0_0_10px_#a855f744];
   }
 
-  .theme-noir .metadata {
-    @apply text-[0.7rem] text-white/60 font-mono bg-white/10 backdrop-blur-sm px-3 py-1 rounded-md border border-white/20 shadow-sm;
+  .theme-noir .btn-danger {
+    @apply bg-red-500 text-white hover:shadow-[0_0_10px_#ef444455];
   }
 
-  .theme-noir .navbar {
-    @apply bg-white/10 backdrop-blur-lg border-b border-white/10;
+  .theme-noir .btn-gray {
+    @apply text-white bg-gradient-to-b from-[#2f2f4e] to-[#3a3a5a] hover:from-[#3a3a5a] hover:to-[#464669] active:to-[#51517a] border border-white/20;
   }
 
-  .theme-noir .icon {
-    @apply text-purple-400;
-  }
-
-  .theme-noir .ring-focus {
-    @apply ring-purple-500/60 focus:ring-2;
-  }
-
-  .theme-noir {
-    @apply text-white;
-  }
-
-  .theme-noir .dropdown-bg {
-    @apply bg-white/5 backdrop-blur-lg border-t border-white/10 shadow-md;
-  }
-
-  .theme-noir .mobile-toggle-icon {
-    @apply text-white;
-  }
-
-  .theme-noir .dropdown-bg {
-    @apply bg-[#191825] backdrop-blur-md border-t border-white/10 shadow-md;
-  }
-
-  .theme-noir .wallet-box {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-sm rounded-full px-4 py-2;
-  }
-
-  .theme-dark .wallet-text,
-  .theme-noir .wallet-text {
-    @apply text-white/80;
-  }
-
-  .theme-dark .role-badge,
   .theme-noir .role-badge {
-    @apply bg-white/10 border border-white/20 text-white/70;
+    @apply bg-white/10 border border-white/10 text-white/80;
+  }
+
+  .theme-dark .metadata,
+  .theme-noir .metadata {
+    @apply text-white/60;
   }
 
 
-  /* === ELSE === */
-  .btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-cyberblue hover:brightness-110 border border-cyberblue rounded-md shadow-md transition text-sm active:scale-95;
+
+
+
+  /* === SHARED COMPONENTS === */
+  .card {
+    @apply rounded-2xl p-5 transition-all duration-300 ease-in-out;
   }
 
-  .btn-danger {
-    @apply inline-flex items-center justify-center px-4 py-2 font-semibold text-white bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:to-red-800 border border-red-600 rounded-md shadow-md text-sm transition;
-  }
-
+  .btn-primary,
+  .btn-danger,
   .btn-gray {
-    @apply inline-flex items-center justify-center px-4 py-2 font-semibold text-gray-800 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 active:to-gray-400 border border-gray-300 rounded-md shadow-md text-sm transition disabled:opacity-50;
+    @apply inline-flex items-center justify-center px-6 py-2.5 font-semibold rounded-full transition-all active:scale-95 text-sm shadow-md;
+  }
+
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg shadow-inner focus:outline-none;
+  }
+
+  .icon {
+    transition: color 0.3s ease;
+  }
+
+  .theme-light .icon {
+    color: #0a1f33;
+    /* gelap */
+  }
+
+  .theme-dark .icon,
+  .theme-noir .icon {
+    color: white;
+  }
+
+  .theme-dark .navbar,
+  .theme-noir .navbar {
+    @apply brightness-200;
+  }
+
+
+
+  .metadata {
+    @apply text-xs font-mono;
+  }
+
+  .status-text {
+    @apply text-sm text-gray-500 dark:text-white/70;
+  }
+
+  .card-list {
+    @apply space-y-4;
   }
 
   .btn-tab-active-indigo {
@@ -223,6 +196,31 @@ div.__toast-container {
 
   .btn-tab-active-green {
     @apply text-white bg-gradient-to-b from-green-500 to-green-600 border-green-600 hover:from-green-600 hover:to-green-700 active:to-green-800;
+  }
+
+  .wallet-box {
+    @apply px-4 py-2 rounded-md border shadow-md;
+  }
+
+  .theme-light .wallet-box {
+    @apply bg-white/30 backdrop-blur-md border border-white/20;
+  }
+
+  .theme-dark .wallet-box {
+    @apply bg-white/10 backdrop-blur-md border border-white/10;
+  }
+
+  .theme-noir .wallet-box {
+    @apply bg-white/10 backdrop-blur-md border border-white/10;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.96);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+  }
+
+  .section-container {
+    @apply max-w-3xl mx-auto px-4;
   }
 
 }

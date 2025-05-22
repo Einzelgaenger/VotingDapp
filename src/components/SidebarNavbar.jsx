@@ -54,7 +54,13 @@ export default function SidebarNavbar({ setPage, currentPage }) {
             initial={{ y: -80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="navbar fixed top-0 left-0 right-0 z-50 px-4 py-3 shadow-[0_2px_10px_rgba(255,255,255,0.05)] flex items-center justify-between"
+            className="navbar fixed top-0 left-0 right-0 z-50 px-4 py-3
+    bg-white/10 dark:bg-white/5
+    backdrop-blur-md
+    border-b border-white/20 dark:border-white/10
+    shadow-[0_4px_30px_rgba(0,0,0,0.1)]
+    flex items-center justify-between
+    "
         >
             {/* Logo */}
             <div
