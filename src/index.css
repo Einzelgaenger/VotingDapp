@@ -63,6 +63,10 @@ div.__toast-container {
     background-color: white;
   }
 
+  .theme-light .status-text {
+    @apply text-cyberdark font-medium;
+  }
+
 
 
 
@@ -150,6 +154,14 @@ div.__toast-container {
     background-color: #150c25;
   }
 
+  .theme-dark .status-text,
+  .theme-noir .status-text {
+    @apply text-white/90 font-medium;
+  }
+
+  .theme-noir .role-badge {
+    @apply text-white bg-white/10 border-white/20;
+  }
 
 
 
@@ -235,4 +247,25 @@ div.__toast-container {
     @apply max-w-3xl mx-auto px-4;
   }
 
+  .role-badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border transition-all;
+  }
+
+  /* === Creator Badge === */
+  .badge-creator {
+    @apply text-white bg-gradient-to-r from-purple-500 to-fuchsia-500 border-transparent;
+  }
+
+  .theme-light .badge-creator {
+    @apply text-white bg-gradient-to-r from-purple-600 to-pink-500;
+  }
+
+  /* === Voter Badge === */
+  .badge-voter {
+    @apply text-white bg-gradient-to-r from-cyan-500 to-sky-500 border-transparent;
+  }
+
+  .theme-light .badge-voter {
+    @apply text-white bg-gradient-to-r from-cyan-600 to-blue-500;
+  }
 }
