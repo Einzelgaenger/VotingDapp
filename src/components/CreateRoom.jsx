@@ -50,11 +50,9 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
     };
 
     return (
-        <div className="min-h-[calc(100vh-72px)] pt-[72px] md:pt-16 px-4 flex justify-center items-start md:items-center relative">
-            <div className="section-container">
-
-
-                <div className="card max-w-xl w-full px-6 py-8 md:px-10 md:py-12 transition-all">
+        <div className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center px-4 relative">
+            <div className="section-container flex-grow flex items-center justify-center">
+                <div className="card max-w-xl w-full px-6 py-8 md:px-10 md:py-12">
                     <div className="flex items-center justify-center gap-3 mb-6">
                         <ClipboardList className="w-8 h-8 icon" />
                         <h2 className="text-3xl md:text-4xl font-exo font-semibold tracking-wide">
@@ -85,7 +83,7 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
                             ></textarea>
                         </div>
 
-                        <button type="submit" disabled={creating} className="btn-primary">
+                        <button type="submit" disabled={creating} className="btn-primary w-full">
                             {creating ? (
                                 <>
                                     <Loader2 className="w-5 h-5 mr-2 animate-spin icon" />
