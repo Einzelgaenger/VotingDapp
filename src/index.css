@@ -59,6 +59,10 @@ div.__toast-container {
     @apply text-gray-500;
   }
 
+  .theme-light .dropdown-bg {
+    background-color: white;
+  }
+
 
 
 
@@ -94,6 +98,10 @@ div.__toast-container {
 
   .theme-dark .role-badge {
     @apply bg-white/10 border border-white/10 text-white/80;
+  }
+
+  .theme-dark .dropdown-bg {
+    background-color: #0a1f33;
   }
 
 
@@ -136,6 +144,10 @@ div.__toast-container {
   .theme-dark .metadata,
   .theme-noir .metadata {
     @apply text-white/60;
+  }
+
+  .theme-noir .dropdown-bg {
+    background-color: #150c25;
   }
 
 
