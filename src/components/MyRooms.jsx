@@ -182,17 +182,19 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                     <div className="flex gap-3 justify-center md:justify-start">
                         <button
                             onClick={() => setTab('created')}
-                            className={`btn-primary ${tab === 'created' ? 'btn-tab-active-indigo' : 'opacity-60'}`}
+                            className={tab === 'created' ? 'btn-primary' : 'btn-gray'}
                         >
                             Created
                         </button>
                         <button
                             onClick={() => setTab('joined')}
-                            className={`btn-primary ${tab === 'joined' ? 'btn-tab-active-green' : 'opacity-60'}`}
+                            className={tab === 'joined' ? 'btn-primary' : 'btn-gray'}
                         >
-                            Join
+                            Joined
                         </button>
                     </div>
+
+
                     <div className="flex gap-3 justify-center md:justify-end">
                         <input type="text" className="input w-full md:w-64" placeholder="Search room..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                         <button onClick={fetchRooms} className="btn-primary" disabled={loading}>
