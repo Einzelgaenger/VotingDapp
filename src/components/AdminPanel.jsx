@@ -27,6 +27,24 @@ export default function AdminPanel({ setPage }) {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [localTime, setLocalTime] = useState('');
+
+    useEffect(() => {
+        const updateTime = () => {
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Jakarta',
+            });
+            setLocalTime(time);
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
 
     useEffect(() => {
         if (!account) return;
@@ -340,6 +358,10 @@ export default function AdminPanel({ setPage }) {
                     </>
                 )}
             </div>
+            <div className="metadata absolute bottom-4 right-6">
+                SYSTEM · EN · {localTime}
+            </div>
+
         </div>
     );
 }

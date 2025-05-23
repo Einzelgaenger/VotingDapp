@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Contract, isAddress, BrowserProvider } from 'ethers';
 import { useWallet } from '../contexts/WalletContext';
 import VotingRoomAbi from '../abis/VotingRoom.json';
-import { Loader2, ArrowLeft, UserCheck } from 'lucide-react';
+import { Loader2, ArrowLeft, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function JoinRoom({ setPage, setActiveRoomAddress }) {
@@ -73,7 +73,7 @@ export default function JoinRoom({ setPage, setActiveRoomAddress }) {
             <div className="section-container flex-grow flex items-center justify-center">
                 <div className="card max-w-xl w-full px-6 py-8 md:px-10 md:py-12">
                     <div className="flex items-center justify-center gap-3 mb-6">
-                        <UserCheck className="w-8 h-8 icon" />
+                        <LogIn className="w-8 h-8 icon" />
                         <h2 className="text-3xl md:text-4xl font-exo font-semibold tracking-wide">
                             Join a Voting Session
                         </h2>
