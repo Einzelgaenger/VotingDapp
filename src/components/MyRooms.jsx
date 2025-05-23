@@ -167,7 +167,7 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
     const paginated = filtered.slice((currentPage - 1) * ROOMS_PER_PAGE, currentPage * ROOMS_PER_PAGE);
 
     return (
-        <div className="min-h-[calc(100vh-72px)] pt-5 pb-12 px-4 flex justify-center relative">
+        <div className="min-h-[calc(100vh-80px)] pt-5 pb-12 px-4 flex justify-center relative">
             <div className="section-container max-w-7xl w-full">
                 {/* Header */}
                 <div className="text-center mb-8">
@@ -205,6 +205,10 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
 
                 {/* Cards */}
                 <div className="card-list">
+                    <h2 className="font-semibold mb-2 flex items-center gap-2 metadata">
+                        <ClipboardList className="w-5 h-5" />
+                        Rooms ({filtered.length})
+                    </h2>
                     {loading ? (
                         <p className="text-center text-muted">Loading...</p>
                     ) : paginated.length === 0 ? (
@@ -285,7 +289,7 @@ export default function MyRooms({ setPage, setActiveRoomAddress }) {
                                                         {roomDetails[r.address]?.description && <p><strong>Description:</strong> {roomDetails[r.address]?.description}</p>}
                                                         <p><strong>Room Admin:</strong> {roomDetails[r.address]?.roomAdmin || '-'}</p>
                                                         <p><strong>Super Admin:</strong> {roomDetails[r.address]?.superAdmin || '-'}</p>
-                                                        <p><strong>Factory:</strong> {roomDetails[r.address]?.factory || '-'}</p>
+                                                        {/* <p><strong>Factory:</strong> {roomDetails[r.address]?.factory || '-'}</p> */}
                                                         <p><strong>Max Voters:</strong> {roomDetails[r.address]?.maxVoters || '-'}</p>
                                                         <p><strong>Current Voters:</strong> {r.votersCount}</p>
                                                         <p><strong>Number of Candidates:</strong> {r.candidatesCount}</p>

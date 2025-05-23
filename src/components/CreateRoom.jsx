@@ -50,7 +50,7 @@ export default function CreateRoom({ setPage, setActiveRoomAddress }) {
     };
 
     return (
-        <div className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center px-4 relative">
+        <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 relative">
             <div className="section-container flex-grow flex items-center justify-center">
                 <div className="card max-w-xl w-full px-6 py-8 md:px-10 md:py-12">
                     <div className="flex items-center justify-center gap-3 mb-6">
